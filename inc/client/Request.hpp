@@ -6,7 +6,7 @@
 /*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/02 19:24:42 by smoore-a          #+#    #+#             */
-/*   Updated: 2025/10/05 19:46:00 by smoore-a         ###   ########.fr       */
+/*   Updated: 2025/10/10 11:49:19 by smoore-a         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,13 +39,12 @@ public:
 
     void parseRequestLine(const std::string &line);
 
-    // bool parseMessage();
     void parseHeader();
     void setHeader(const char *buffer, ssize_t readBytes);
     void setBody(const char *buffer, ssize_t bytes);
 
     // Getters from client version
-    tRecvStatus getRecvStatus() const;
+    const tRecvStatus &getRecvStatus() const;
     const std::string &getHeader() const;
     const std::string &getFilename() const;
     const std::string &getContentType() const;

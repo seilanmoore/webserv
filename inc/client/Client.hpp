@@ -6,7 +6,7 @@
 /*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/21 14:26:07 by smoore-a          #+#    #+#             */
-/*   Updated: 2025/10/02 19:46:19 by smoore-a         ###   ########.fr       */
+/*   Updated: 2025/10/10 11:35:45 by smoore-a         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,7 +51,6 @@ private:
   uint16_t _port;
 
   Request *_request;
-  bool _recvBody;
   Response *_response;
 };
 

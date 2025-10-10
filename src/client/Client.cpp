@@ -6,7 +6,7 @@
 /*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/18 14:36:29 by smoore-a          #+#    #+#             */
-/*   Updated: 2025/10/02 22:47:27 by smoore-a         ###   ########.fr       */
+/*   Updated: 2025/10/10 11:51:44 by smoore-a         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,6 @@ Client::Client()
       _serverFD(-1),
       _port(0),
       _request(NULL),
-      _recvBody(false),
       _response(NULL)
 {
 }
@@ -110,6 +109,7 @@ ssize_t Client::receiveRequest()
   else if (recvStatus == BODY)
     _request->setBody(buffer, bytesRead);
 
+  recvStatus = _request->getRecvStatus();
   if (recvStatus == DONE)
   {
     std::cerr << "Request from client socket " << _fd << " on port " << _port << ":\n"

@@ -6,7 +6,7 @@
 /*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/02 20:00:09 by smoore-a          #+#    #+#             */
-/*   Updated: 2025/10/05 20:00:16 by smoore-a         ###   ########.fr       */
+/*   Updated: 2025/10/10 12:00:32 by smoore-a         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,7 @@ Request::Request()
       _ifNoneMatch(),
 
       _contentLength(0),
-      _contentType(),
+      _contentType("text/html"),
 
       _acceptEnconding(),
       _userAgent(),
@@ -51,7 +51,7 @@ Request::Request()
       _fileExtension(),
       _range(),
 
-      _filename(),
+      _filename("docs/html/index.html"),
       _isBinary(false)
 {
 }
@@ -125,8 +125,18 @@ void Request::parse(const std::string &rawRequest)
 
 // bool Request::parseMessage()
 // {
-//     if (_message.find("\r\n\r\n") != std::string::npos)
+//     if (_header.find("\r\n\r\n") != std::string::npos)
 //     {
+//         if (_header.find("GET /about") == 0)
+//             _filename = "docs/html/about.html";
+//         else if (_header.find("GET /makelele") == 0)
+//             _filename = "docs/html/makelele.html";
+//         else if (_header.find("GET /png/makelele.png") == 0)
+//         {
+//             _filename = "docs/png/makelele.png";
+//             _contentType = "image/png";
+//             _isBinary = true;
+//         }
 //         return true;
 //     }
 //     return false;
@@ -134,33 +144,45 @@ void Request::parse(const std::string &rawRequest)
 
 void Request::parseHeader()
 {
-    std::istringstream iss(_header);
-    std::string line;
+    // std::istringstream iss(_header);
+    // std::string line;
 
-    if (std::getline(iss, line))
+    // if (std::getline(iss, line))
+    // {
+    //     std::istringstream requestLine(line);
+    //     requestLine >> _method >> _uri >> _version;
+    // }
+
+    if (_header.find("GET /about") == 0)
+        _filename = "docs/html/about.html";
+    else if (_header.find("GET /makelele") == 0)
+        _filename = "docs/html/makelele.html";
+    else if (_header.find("GET /png/makelele.png") == 0)
     {
-        std::istringstream requestLine(line);
-        requestLine >> _method >> _uri >> _version;
+        _filename = "docs/png/makelele.png";
+        _contentType = "image/png";
+        _isBinary = true;
     }
 }
 
 void Request::setHeader(const char *buffer, ssize_t readBytes)
 {
+    (void)readBytes;
     _header += buffer;
-    std::string tmp(buffer);
-    std::size_t end = tmp.find("\r\n\r\n");
+    std::size_t end = _header.find("\r\n\r\n");
     if (end != std::string::npos)
     {
+        std::cerr << "entro!\n";
         parseHeader();
         if (_contentLength)
         {
-            _recvStatus == BODY;
-            _body.insert(_body.end(), tmp.begin() + end + 4, tmp.end());
+            _recvStatus = BODY;
+            _body.insert(_body.end(), _header.begin() + end + 4, _header.end());
             if (_body.size() == _contentLength)
-                _recvStatus == DONE;
+                _recvStatus = DONE;
         }
         else
-            _recvStatus == DONE;
+            _recvStatus = DONE;
     }
 }
 
@@ -169,10 +191,10 @@ void Request::setBody(const char *buffer, ssize_t readBytes)
     _body.insert(_body.end(), buffer, buffer + readBytes);
     _bodyReadBytes += readBytes;
     if (_bodyReadBytes == _contentLength)
-        _recvStatus == DONE;
+        _recvStatus = DONE;
 }
 
-tRecvStatus Request::getRecvStatus() const
+const tRecvStatus &Request::getRecvStatus() const
 {
     return _recvStatus;
 }

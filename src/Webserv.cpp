@@ -6,7 +6,7 @@
 /*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/09 12:55:34 by smoore-a          #+#    #+#             */
-/*   Updated: 2025/10/02 12:41:01 by smoore-a         ###   ########.fr       */
+/*   Updated: 2025/10/10 11:37:45 by smoore-a         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -253,7 +253,6 @@ int Webserv::addServer(struct conf c)
   std::cerr << "Server " << server->getName()
             << " with fd " << server->getFD()
             << " listening on port " << server->getPort() << std::endl;
-  std::cerr << "🌐 Click here to access: http://localhost:" << server->getPort() << std::endl;
   return fd;
 }
 

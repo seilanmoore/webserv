@@ -6,7 +6,7 @@
 /*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/21 14:26:31 by smoore-a          #+#    #+#             */
-/*   Updated: 2025/10/02 13:12:02 by smoore-a         ###   ########.fr       */
+/*   Updated: 2025/10/10 11:03:54 by smoore-a         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,123 +76,123 @@ void Response::generateResponse(const Request &request)
   _filename = request.getFilename();
   _isBinary = request.getIsBinary();
 
-  // Check if this is a CGI script request
-  if (isCgiScript(_filename))
+  // // Check if this is a CGI script request
+  // if (isCgiScript(_filename))
+  // {
+  //   // For CGI, we need to build the full script path
+  //   std::string scriptPath = _filename;
+
+  //   // Extract query string and method from request
+  //   std::string queryString = request.getQueryString();
+  //   std::string method = request.getMethod();
+
+  //   // Create a pipe to capture CGI output
+  //   int pipefd[2];
+  //   if (pipe(pipefd) == -1)
+  //   {
+  //     _fileContent = "<html><body><h1>500 Internal Server Error - CGI pipe failed</h1></body></html>";
+  //     _contentType = "text/html";
+  //     _isBinary = false;
+  //     _fileFound = true;
+  //   }
+  //   else
+  //   {
+  //     pid_t pid = fork();
+  //     if (pid == -1)
+  //     {
+  //       _fileContent = "<html><body><h1>500 Internal Server Error - CGI fork failed</h1></body></html>";
+  //       _contentType = "text/html";
+  //       _isBinary = false;
+  //       _fileFound = true;
+  //       close(pipefd[0]);
+  //       close(pipefd[1]);
+  //     }
+  //     else if (pid == 0)
+  //     {
+  //       // Child process - execute CGI
+  //       close(pipefd[0]);               // Close read end
+  //       dup2(pipefd[1], STDOUT_FILENO); // Redirect stdout to pipe
+  //       close(pipefd[1]);
+
+  //       char *envp[4];
+  //       char interp_buf[256];
+  //       char script_buf[256];
+  //       char *argv[3];
+
+  //       buildCgiEnv(scriptPath, queryString, method, envp);
+  //       buildCgiExecArgBuffers(scriptPath, argv, interp_buf, script_buf);
+  //       execve(argv[0], argv, envp);
+
+  //       // If exec fails
+  //       std::cerr << "CGI exec failed for: " << scriptPath << std::endl;
+  //       exit(1);
+  //     }
+  //     else
+  //     {
+  //       // Parent process - read CGI output
+  //       close(pipefd[1]); // Close write end
+
+  //       std::string cgiOutput;
+  //       char buffer[4096];
+  //       ssize_t n;
+
+  //       while ((n = read(pipefd[0], buffer, sizeof(buffer) - 1)) > 0)
+  //       {
+  //         buffer[n] = '\0';
+  //         cgiOutput += buffer;
+  //       }
+
+  //       close(pipefd[0]);
+  //       waitpid(pid, NULL, 0);
+
+  //       if (!cgiOutput.empty())
+  //       {
+  //         // CGI scripts output their own HTTP headers
+  //         _response = cgiOutput;
+  //         _fileFound = true;
+  //         return; // Early return for CGI - response is complete
+  //       }
+  //       else
+  //       {
+  //         _fileContent = "<html><body><h1>500 Internal Server Error - CGI produced no output</h1></body></html>";
+  //         _contentType = "text/html";
+  //         _isBinary = false;
+  //         _fileFound = true;
+  //       }
+  //     }
+  //   }
+  // }
+  // else
+  // {
+  // Handle static files as before
+  if (_isBinary)
   {
-    // For CGI, we need to build the full script path
-    std::string scriptPath = _filename;
-
-    // Extract query string and method from request
-    std::string queryString = request.getQueryString();
-    std::string method = request.getMethod();
-
-    // Create a pipe to capture CGI output
-    int pipefd[2];
-    if (pipe(pipefd) == -1)
+    std::ifstream file(_filename.c_str(), std::ios::in | std::ios::binary);
+    if (file.is_open())
     {
-      _fileContent = "<html><body><h1>500 Internal Server Error - CGI pipe failed</h1></body></html>";
-      _contentType = "text/html";
-      _isBinary = false;
+      file.seekg(0, std::ios::end);
+      std::streamsize size = file.tellg();
+      file.seekg(0, std::ios::beg);
+      _binaryContent.resize(size);
+      if (size > 0)
+        file.read(&_binaryContent[0], size);
+      file.close();
       _fileFound = true;
-    }
-    else
-    {
-      pid_t pid = fork();
-      if (pid == -1)
-      {
-        _fileContent = "<html><body><h1>500 Internal Server Error - CGI fork failed</h1></body></html>";
-        _contentType = "text/html";
-        _isBinary = false;
-        _fileFound = true;
-        close(pipefd[0]);
-        close(pipefd[1]);
-      }
-      else if (pid == 0)
-      {
-        // Child process - execute CGI
-        close(pipefd[0]);               // Close read end
-        dup2(pipefd[1], STDOUT_FILENO); // Redirect stdout to pipe
-        close(pipefd[1]);
-
-        char *envp[4];
-        char interp_buf[256];
-        char script_buf[256];
-        char *argv[3];
-
-        buildCgiEnv(scriptPath, queryString, method, envp);
-        buildCgiExecArgBuffers(scriptPath, argv, interp_buf, script_buf);
-        execve(argv[0], argv, envp);
-
-        // If exec fails
-        std::cerr << "CGI exec failed for: " << scriptPath << std::endl;
-        exit(1);
-      }
-      else
-      {
-        // Parent process - read CGI output
-        close(pipefd[1]); // Close write end
-
-        std::string cgiOutput;
-        char buffer[4096];
-        ssize_t n;
-
-        while ((n = read(pipefd[0], buffer, sizeof(buffer) - 1)) > 0)
-        {
-          buffer[n] = '\0';
-          cgiOutput += buffer;
-        }
-
-        close(pipefd[0]);
-        waitpid(pid, NULL, 0);
-
-        if (!cgiOutput.empty())
-        {
-          // CGI scripts output their own HTTP headers
-          _response = cgiOutput;
-          _fileFound = true;
-          return; // Early return for CGI - response is complete
-        }
-        else
-        {
-          _fileContent = "<html><body><h1>500 Internal Server Error - CGI produced no output</h1></body></html>";
-          _contentType = "text/html";
-          _isBinary = false;
-          _fileFound = true;
-        }
-      }
     }
   }
   else
   {
-    // Handle static files as before
-    if (_isBinary)
+    std::ifstream file(_filename.c_str());
+    if (file.is_open())
     {
-      std::ifstream file(_filename.c_str(), std::ios::in | std::ios::binary);
-      if (file.is_open())
-      {
-        file.seekg(0, std::ios::end);
-        std::streamsize size = file.tellg();
-        file.seekg(0, std::ios::beg);
-        _binaryContent.resize(size);
-        if (size > 0)
-          file.read(&_binaryContent[0], size);
-        file.close();
-        _fileFound = true;
-      }
-    }
-    else
-    {
-      std::ifstream file(_filename.c_str());
-      if (file.is_open())
-      {
-        std::stringstream buffer_stream;
-        buffer_stream << file.rdbuf();
-        _fileContent = buffer_stream.str();
-        file.close();
-        _fileFound = true;
-      }
+      std::stringstream buffer_stream;
+      buffer_stream << file.rdbuf();
+      _fileContent = buffer_stream.str();
+      file.close();
+      _fileFound = true;
     }
   }
+  //}
 
   if (!_fileFound)
   {
