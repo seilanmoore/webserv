@@ -6,7 +6,7 @@
 /*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/09 12:36:27 by smoore-a          #+#    #+#             */
-/*   Updated: 2025/10/02 20:01:14 by smoore-a         ###   ########.fr       */
+/*   Updated: 2025/10/10 14:00:13 by smoore-a         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,13 +20,13 @@
 #include <map>
 
 #include "Server.hpp"
-#include "Client.hpp"
+#include "Connection.hpp"
 #include "utils.hpp"
 
 typedef enum ePollFDType
 {
   SERVER,
-  CLIENT
+  CONNECTION
 } tPollFDType;
 
 class Webserv
@@ -41,7 +41,7 @@ public:
 
   void checkFDReturnedEvents();
 
-  void receiveClientRequest(nfds_t &pos);
+  void receiveConnectionRequest(nfds_t &pos);
   void sendServerResponse(nfds_t &pos);
 
   void addPollFD(int fd, tPollFDType fdType);
@@ -52,8 +52,8 @@ public:
   void deleteServer(int fd);
   void restartServer(nfds_t &pos);
 
-  int addClient(int serverFD);
-  void deleteClient(nfds_t &pos);
+  int addConnection(int serverFD);
+  void deleteConnection(nfds_t &pos);
 
 private:
   // Config _config;
@@ -65,8 +65,8 @@ private:
   std::map<int, Server *> _server;
   nfds_t _nRunningServer;
 
-  std::map<int, Client *> _client;
-  nfds_t _nClient;
+  std::map<int, Connection *> _connection;
+  nfds_t _nConnection;
 
   Webserv(const Webserv &other);
   Webserv &operator=(const Webserv &other);

@@ -6,7 +6,7 @@
 /*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/21 14:26:31 by smoore-a          #+#    #+#             */
-/*   Updated: 2025/10/10 11:03:54 by smoore-a         ###   ########.fr       */
+/*   Updated: 2025/10/10 13:44:22 by smoore-a         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,8 +24,9 @@
 
 #include "Webserv.hpp"
 #include "Request.hpp"
-#include "CgiHandler.hpp"
 #include "utils.hpp"
+
+// #include "CgiHandler.hpp"
 
 Response::Response()
     : _sendingBinary(false),

@@ -6,7 +6,7 @@
 /*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/02 20:00:09 by smoore-a          #+#    #+#             */
-/*   Updated: 2025/10/10 12:00:32 by smoore-a         ###   ########.fr       */
+/*   Updated: 2025/10/10 14:04:11 by smoore-a         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -172,7 +172,6 @@ void Request::setHeader(const char *buffer, ssize_t readBytes)
     std::size_t end = _header.find("\r\n\r\n");
     if (end != std::string::npos)
     {
-        std::cerr << "entro!\n";
         parseHeader();
         if (_contentLength)
         {

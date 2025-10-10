@@ -6,7 +6,7 @@
 /*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/08 14:06:57 by smoore-a          #+#    #+#             */
-/*   Updated: 2025/09/23 13:56:42 by smoore-a         ###   ########.fr       */
+/*   Updated: 2025/10/10 13:59:01 by smoore-a         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@
 #include <string>
 
 // #include "Config.hpp"
-#include "Client.hpp"
+#include "Connection.hpp"
 
 typedef struct sockaddr_in t_sockaddr_in;
 
@@ -34,18 +34,18 @@ public:
 
   int setupServer(const std::string &name, uint16_t port);
 
-  void deleteClient(int fd);
+  void deleteConnection(int fd);
 
   int getFD() const;
   t_sockaddr_in getAddress() const;
   const std::string &getName() const;
   uint16_t getPort() const;
-  const std::map<int, Client *> &getClient() const;
-  nfds_t getNClient() const;
+  const std::map<int, Connection *> &getConnection() const;
+  nfds_t getNConnection() const;
 
   void setFD(int fd);
   void setAddress(const t_sockaddr_in &address);
-  void setClient(int fd, Client *client);
+  void setConnection(int fd, Connection *connection);
 
 private:
   // const sDirectives *_genericDir;
@@ -56,8 +56,8 @@ private:
   std::string _name;
   uint16_t _port;
 
-  std::map<int, Client *> _client;
-  nfds_t _nClient;
+  std::map<int, Connection *> _connection;
+  nfds_t _nConnection;
 
   // MANDATORY CLASS MEMBERS
   Server(const Server &other);

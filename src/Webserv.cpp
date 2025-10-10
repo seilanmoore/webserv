@@ -6,7 +6,7 @@
 /*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/09 12:55:34 by smoore-a          #+#    #+#             */
-/*   Updated: 2025/10/10 11:37:45 by smoore-a         ###   ########.fr       */
+/*   Updated: 2025/10/10 14:03:39 by smoore-a         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,7 @@
 #include <sstream>
 
 #include "Server.hpp"
-#include "Client.hpp"
+#include "Connection.hpp"
 #include "utils.hpp"
 
 ///////////////////////////////////////////
@@ -39,7 +39,7 @@ static void printPoll(nfds_t nPollFD, const std::vector<struct pollfd> &pollFD, 
   std::cerr << "-------\n";
   for (nfds_t i = 0; i < nPollFD; ++i)
   {
-    std::cerr << (type[i] == SERVER ? "Server" : "Client") << ": " << pollFD[i].fd << '\n';
+    std::cerr << (type[i] == SERVER ? "Server" : "Connection") << ": " << pollFD[i].fd << '\n';
   }
 }
 
@@ -53,8 +53,8 @@ Webserv::Webserv()
       _nPollFD(0),
       _server(),
       _nRunningServer(0),
-      _client(),
-      _nClient(0)
+      _connection(),
+      _nConnection(0)
 
 {
 }
@@ -122,7 +122,7 @@ void Webserv::loop()
 
     if (pollRet == 0)
     {
-      std::cerr << "Debug: timeout. Connected clients "
+      std::cerr << "Debug: timeout. Connected connections "
                 << _nPollFD - _nRunningServer << '\n';
       continue;
     }
@@ -142,15 +142,15 @@ void Webserv::checkFDReturnedEvents()
       //           << _pollFD[pos].fd << std::endl;
       if (_pollFDType[pos] == SERVER)
         restartServer(pos);
-      else if (_pollFDType[pos] == CLIENT)
-        deleteClient(pos);
+      else if (_pollFDType[pos] == CONNECTION)
+        deleteConnection(pos);
     }
     else if (_pollFD[pos].revents & POLLIN)
     {
       if (_pollFDType[pos] == SERVER)
-        addClient(_pollFD[pos].fd);
-      else if (_pollFDType[pos] == CLIENT)
-        receiveClientRequest(pos);
+        addConnection(_pollFD[pos].fd);
+      else if (_pollFDType[pos] == CONNECTION)
+        receiveConnectionRequest(pos);
     }
     else if (_pollFD[pos].revents & POLLOUT)
       sendServerResponse(pos);
@@ -160,46 +160,46 @@ void Webserv::checkFDReturnedEvents()
   }
 }
 
-void Webserv::receiveClientRequest(nfds_t &pos)
+void Webserv::receiveConnectionRequest(nfds_t &pos)
 {
-  int clientFD = _pollFD[pos].fd;
-  Client *client = _client[clientFD];
+  int connectionFD = _pollFD[pos].fd;
+  Connection *connection = _connection[connectionFD];
 
-  ssize_t receiveStatus = client->receiveRequest();
+  ssize_t receiveStatus = connection->receiveRequest();
 
   if (receiveStatus == -1)
   {
-    deleteClient(pos);
+    deleteConnection(pos);
     return;
   }
 
   if (receiveStatus == 0)
   {
 
-    client->generateResponse();
+    connection->generateResponse();
     _pollFD[pos].events = POLLOUT;
   }
 }
 
 void Webserv::sendServerResponse(nfds_t &pos)
 {
-  int clientFD = _pollFD[pos].fd;
-  ssize_t sendStatus = _client[clientFD]->sendServerResponse();
+  int connectionFD = _pollFD[pos].fd;
+  ssize_t sendStatus = _connection[connectionFD]->sendServerResponse();
   if (sendStatus == -1)
   {
     DEBUG_VAR(errorStr(errno), _pollFD[pos].fd);
-    deleteClient(pos);
+    deleteConnection(pos);
   }
   else if (sendStatus == 0)
   {
-    std::cerr << "Response: " << _client[clientFD]->getResponse();
+    std::cerr << "Response: " << _connection[connectionFD]->getResponse();
 
     _pollFD[pos].events = POLLIN;
-    _client[clientFD]->resetRequestResponse();
+    _connection[connectionFD]->resetRequestResponse();
   }
 
   //   DEBUG_VAR("Error: send() returned 0", _pollFD[pos].fd);
-  //   deleteClient(pos);
+  //   deleteConnection(pos);
 }
 
 void Webserv::addPollFD(int fd, tPollFDType fdType)
@@ -258,16 +258,16 @@ int Webserv::addServer(struct conf c)
 
 void Webserv::deleteServer(int fd)
 {
-  std::map<int, Client *>::const_iterator it = _server[fd]->getClient().begin();
-  std::map<int, Client *>::const_iterator endIt = _server[fd]->getClient().end();
-  int clientFD;
+  std::map<int, Connection *>::const_iterator it = _server[fd]->getConnection().begin();
+  std::map<int, Connection *>::const_iterator endIt = _server[fd]->getConnection().end();
+  int connectionFD;
 
   for (; it != endIt; ++it)
   {
-    clientFD = it->first;
-    _client.erase(clientFD);
-    --_nClient;
-    deletePollFD(clientFD);
+    connectionFD = it->first;
+    _connection.erase(connectionFD);
+    --_nConnection;
+    deletePollFD(connectionFD);
   }
 
   delete _server[fd];
@@ -294,42 +294,41 @@ void Webserv::restartServer(nfds_t &pos)
   }
 }
 
-int Webserv::addClient(int serverFD)
+int Webserv::addConnection(int serverFD)
 {
   if (_nPollFD == MAX_FD)
   {
-    DEBUG_PRINT("Error: max number of clients connected");
+    DEBUG_PRINT("Error: max number of connections connected");
     return 1;
   }
 
-  Client *client = new Client();
-  int clientFD;
+  Connection *connection = new Connection();
+  int connectionFD;
 
-  clientFD = client->setupClient(serverFD);
+  connectionFD = connection->setupConnection(serverFD);
 
-  if (clientFD == -1)
+  if (connectionFD == -1)
   {
-    delete client;
+    delete connection;
     return 1;
   }
 
-  _client[clientFD] = client;
-  _server[serverFD]->setClient(clientFD, client);
-  addPollFD(clientFD, CLIENT);
-  ++_nClient;
+  _connection[connectionFD] = connection;
+  _server[serverFD]->setConnection(connectionFD, connection);
+  addPollFD(connectionFD, CONNECTION);
+  ++_nConnection;
 
-  std::cerr << "Client accepted: socket " << clientFD
-            << " port " << client->getPort() << '\n';
+  std::cerr << "Connection accepted on port " << connection->getPort() << '\n';
   printPoll(_nPollFD, _pollFD, _pollFDType);
   return 0;
 }
 
-void Webserv::deleteClient(nfds_t &pos)
+void Webserv::deleteConnection(nfds_t &pos)
 {
-  int clientFD = _pollFD[pos].fd;
-  int serverFD = _client[clientFD]->getServerFD();
+  int connectionFD = _pollFD[pos].fd;
+  int serverFD = _connection[connectionFD]->getServerFD();
 
-  // std::cerr << "Client with socket " << clientFD << " on port " << _client[clientFD]->getPort()
+  // std::cerr << "Connection with socket " << connectionFD << " on port " << _connection[connectionFD]->getPort()
   //           << " deleted because";
   // if (_pollFD[pos].revents & POLLERR)
   //   std::cerr << " POLL_ERR";
@@ -339,12 +338,12 @@ void Webserv::deleteClient(nfds_t &pos)
   //   std::cerr << " POLLNVAL";
   // std::cerr << std::endl;
 
-  _client.erase(clientFD);
-  --_nClient;
+  _connection.erase(connectionFD);
+  --_nConnection;
 
   deletePollFD(pos);
 
-  _server[serverFD]->deleteClient(clientFD);
+  _server[serverFD]->deleteConnection(connectionFD);
 }
 
 void signalHandler(int signal)

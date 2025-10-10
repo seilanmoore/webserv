@@ -1,16 +1,16 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Client.cpp                                         :+:      :+:    :+:   */
+/*   Connection.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/18 14:36:29 by smoore-a          #+#    #+#             */
-/*   Updated: 2025/10/10 11:51:44 by smoore-a         ###   ########.fr       */
+/*   Updated: 2025/10/10 13:58:26 by smoore-a         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Client.hpp"
+#include "Connection.hpp"
 
 #include <arpa/inet.h>
 #include <sys/socket.h>
@@ -24,7 +24,7 @@
 #include "Request.hpp"
 #include "utils.hpp"
 
-Client::Client()
+Connection::Connection()
     : _fd(-1),
       _address(),
       _serverFD(-1),
@@ -34,19 +34,19 @@ Client::Client()
 {
 }
 
-Client::Client(const Client &other)
+Connection::Connection(const Connection &other)
 {
   (void)other;
 }
 
-Client &Client::operator=(const Client &other)
+Connection &Connection::operator=(const Connection &other)
 {
   if (this == &other)
     return *this;
   return *this;
 }
 
-Client::~Client()
+Connection::~Connection()
 {
   if (_request)
     delete _request;
@@ -54,7 +54,7 @@ Client::~Client()
     delete _response;
 }
 
-int Client::setupClient(int serverFD)
+int Connection::setupConnection(int serverFD)
 {
   socklen_t addressLen = sizeof(_address);
 
@@ -78,7 +78,7 @@ int Client::setupClient(int serverFD)
   return _fd;
 }
 
-ssize_t Client::receiveRequest()
+ssize_t Connection::receiveRequest()
 {
   char buffer[BUFFER_SIZE + 1];
   ssize_t bytesRead;
@@ -93,7 +93,7 @@ ssize_t Client::receiveRequest()
 
   if (bytesRead == 0)
   {
-    std::cerr << "Client socket " << _fd << " on port " << getPort() << " disconnected" << std::endl;
+    std::cerr << "Connection on port " << getPort() << " disconnected" << std::endl;
     return -1;
   }
 
@@ -112,7 +112,7 @@ ssize_t Client::receiveRequest()
   recvStatus = _request->getRecvStatus();
   if (recvStatus == DONE)
   {
-    std::cerr << "Request from client socket " << _fd << " on port " << _port << ":\n"
+    std::cerr << "Request from connection on port " << _port << ":\n"
               << _request->getHeader() << '\n';
     return 0;
   }
@@ -120,17 +120,17 @@ ssize_t Client::receiveRequest()
   return bytesRead;
 }
 
-void Client::generateResponse()
+void Connection::generateResponse()
 {
   _response->generateResponse(*_request);
 }
 
-ssize_t Client::sendServerResponse()
+ssize_t Connection::sendServerResponse()
 {
   return _response->sendResponse(_fd);
 }
 
-void Client::resetRequestResponse()
+void Connection::resetRequestResponse()
 {
   delete _request;
   delete _response;
@@ -138,17 +138,17 @@ void Client::resetRequestResponse()
   _response = new Response();
 }
 
-uint16_t Client::getPort() const
+uint16_t Connection::getPort() const
 {
   return _port;
 }
 
-int Client::getServerFD() const
+int Connection::getServerFD() const
 {
   return _serverFD;
 }
 
-const std::string &Client::getResponse() const
+const std::string &Connection::getResponse() const
 {
   return _response->getResponse();
 }

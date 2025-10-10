@@ -6,7 +6,7 @@
 /*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/08 14:07:21 by smoore-a          #+#    #+#             */
-/*   Updated: 2025/10/05 16:07:11 by smoore-a         ###   ########.fr       */
+/*   Updated: 2025/10/10 13:59:01 by smoore-a         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,9 +42,9 @@ Server::Server()
 
 Server::~Server()
 {
-  std::map<int, Client *>::iterator it = _client.begin();
+  std::map<int, Connection *>::iterator it = _connection.begin();
 
-  for (; it != _client.end(); ++it)
+  for (; it != _connection.end(); ++it)
     delete it->second;
 }
 
@@ -92,11 +92,11 @@ int Server::setupServer(const std::string &name, uint16_t port)
   return _fd;
 }
 
-void Server::deleteClient(int fd)
+void Server::deleteConnection(int fd)
 {
-  delete _client[fd];
-  _client.erase(fd);
-  --_nClient;
+  delete _connection[fd];
+  _connection.erase(fd);
+  --_nConnection;
 }
 
 t_sockaddr_in Server::getAddress() const
@@ -118,14 +118,14 @@ uint16_t Server::getPort() const
   return _port;
 }
 
-const std::map<int, Client *> &Server::getClient() const
+const std::map<int, Connection *> &Server::getConnection() const
 {
-  return _client;
+  return _connection;
 }
 
-nfds_t Server::getNClient() const
+nfds_t Server::getNConnection() const
 {
-  return _nClient;
+  return _nConnection;
 }
 
 void Server::setFD(int fd)
@@ -138,10 +138,10 @@ void Server::setAddress(const t_sockaddr_in &address)
   _address = address;
 }
 
-void Server::setClient(int fd, Client *client)
+void Server::setConnection(int fd, Connection *connection)
 {
-  _client[fd] = client;
-  ++_nClient;
+  _connection[fd] = connection;
+  ++_nConnection;
 }
 
 // MANDATORY USELESS TRASH

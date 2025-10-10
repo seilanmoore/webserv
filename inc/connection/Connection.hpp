@@ -1,7 +1,7 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Client.hpp                                         :+:      :+:    :+:   */
+/*   Connection.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
@@ -10,8 +10,8 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef CLIENT_HPP
-#define CLIENT_HPP
+#ifndef CONNECTION_HPP
+#define CONNECTION_HPP
 
 #include <arpa/inet.h>
 #include <sys/socket.h>
@@ -22,15 +22,15 @@
 #include "Request.hpp"
 #include "Response.hpp"
 
-class Client
+class Connection
 {
 public:
-  Client();
-  Client(const Client &other);
-  Client &operator=(const Client &other);
-  ~Client();
+  Connection();
+  Connection(const Connection &other);
+  Connection &operator=(const Connection &other);
+  ~Connection();
 
-  int setupClient(int serverFD);
+  int setupConnection(int serverFD);
 
   ssize_t receiveRequest();
 

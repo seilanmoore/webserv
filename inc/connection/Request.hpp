@@ -6,7 +6,7 @@
 /*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/02 19:24:42 by smoore-a          #+#    #+#             */
-/*   Updated: 2025/10/10 11:49:19 by smoore-a         ###   ########.fr       */
+/*   Updated: 2025/10/10 13:58:26 by smoore-a         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,7 @@ public:
     void setHeader(const char *buffer, ssize_t readBytes);
     void setBody(const char *buffer, ssize_t bytes);
 
-    // Getters from client version
+    // Getters from connection version
     const tRecvStatus &getRecvStatus() const;
     const std::string &getHeader() const;
     const std::string &getFilename() const;
@@ -52,7 +52,7 @@ public:
     const std::string &getMethod() const;
     bool getIsBinary() const;
 
-    // Setters from client version
+    // Setters from connection version
 
 private:
     std::string _method;

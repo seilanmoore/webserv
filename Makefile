@@ -6,7 +6,7 @@
 #    By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/09/08 14:07:03 by smoore-a          #+#    #+#              #
-#    Updated: 2025/10/10 11:02:54 by smoore-a         ###   ########.fr        #
+#    Updated: 2025/10/10 14:00:13 by smoore-a         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,22 +16,25 @@ NAME = ./webserv
 NAME_SHORT = webserv
 
 INC_DIR = inc
-INC_UTIL_DIR = $(INC_DIR)/utils
 INC_SERVER_DIR = $(INC_DIR)/server
-INC_CLIENT_DIR = $(INC_DIR)/client
-# INC_PARSE_DIR = $(INC_DIR)/parse
+INC_CONNECTION_DIR = $(INC_DIR)/connection
+INC_UTIL_DIR = $(INC_DIR)/utils
+# INC_CONFIG_DIR = $(INC_DIR)/config
+# INC_CGI_DIR = $(INC_DIR)/cgi
 
 INC = -I$(INC_DIR) \
-	-I$(INC_UTIL_DIR) \
 	-I$(INC_SERVER_DIR) \
-	-I$(INC_CLIENT_DIR) \
-# 	-I$(INC_PARSE_DIR) \
+	-I$(INC_CONNECTION_DIR) \
+	-I$(INC_UTIL_DIR)
+#	-I$(INC_CONFIG_DIR) \
+#	-I$(INC_CGI_DIR) \
 
 SRC_DIR = src
-UTILS_DIR = $(SRC_DIR)/utils
 SERVER_DIR = $(SRC_DIR)/server
-CLIENT_DIR = $(SRC_DIR)/client
-# PARSE_DIR = $(SRC_DIR)/parse
+CONNECTION_DIR = $(SRC_DIR)/connection
+UTILS_DIR = $(SRC_DIR)/utils
+# CONFIG_DIR = $(SRC_DIR)/config
+# CGI_DIR = $(SRC_DIR)/cgi
 
 OBJ_DIR = obj
 OBJ_FILE = $(SRCS:$(SRC_DIR)%.cpp=$(OBJ_DIR)/%.o)
@@ -42,20 +45,23 @@ SRC_FILE = main.cpp \
 UTIL_FILE = Reader.cpp \
 	utils.cpp
 
-CLIENT_FILE = Client.cpp \
+CONNECTION_FILE = Connection.cpp \
 	Request.cpp \
 	Response.cpp \
 
 SERVER_FILE = Server.cpp \
-	CgiHandler.cpp
+	
+# CONFIG_FILE = Config.cpp \
 
-# PARSE_FILE = canonic_format.cpp \
-# 	parse.cpp
+# CGI_FILE = CgiHandler.cpp \
+
 
 SRCS =	$(addprefix $(SRC_DIR)/, $(SRC_FILE)) \
 	$(addprefix $(UTILS_DIR)/, $(UTIL_FILE)) \
-	$(addprefix $(CLIENT_DIR)/, $(CLIENT_FILE)) \
+	$(addprefix $(CONNECTION_DIR)/, $(CONNECTION_FILE)) \
 	$(addprefix $(SERVER_DIR)/, $(SERVER_FILE)) \
+#	$(addprefix $(CONFIG_DIR)/, $(CONFIG_FILE)) \
+#	$(addprefix $(CGI_DIR)/, $(CGI_FILE)) \
 
 _COLOR = \033[32m
 _BOLDCOLOR = \033[32;1m
