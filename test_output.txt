@@ -1,0 +1,45 @@
+* Host localhost:8080 was resolved.
+* IPv6: ::1
+* IPv4: 127.0.0.1
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0   0     0   0     0     0     0  --:--:-- --:--:-- --:--:--     0*   Trying [::1]:8080...
+* connect to ::1 port 8080 from ::1 port 49358 failed: Connection refused
+*   Trying 127.0.0.1:8080...
+* Established connection to localhost (127.0.0.1 port 8080) from 127.0.0.1 port 48074 
+* using HTTP/1.x
+> GET / HTTP/1.1
+> Host: localhost:8080
+> User-Agent: curl/8.17.0
+> Accept: */*
+> 
+* Request completely sent off
+< HTTP/1.1 200 OK
+< Content-Type: text/html
+< Content-Length: 636
+< 
+{ [105 bytes data]
+100   636 100   636   0     0 533557     0  --:--:-- --:--:-- --:--:-- 636000
+* Connection #0 to host localhost:8080 left intact
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Hello world!</title>
+</head>
+<body>
+    <div style="text-align:center;">
+    <h1>Hello world!</h1>
+    <p>Welcome to the C++ web server!</p>
+    <form action="/about" method="get" style="display:inline;">
+        <button type="submit">About</button>
+    </form>
+    <form action="/makelele" method="get" style="display:inline;">
+        <button type="submit">Makelele</button>
+    </form>
+    <form action="/cgi-bin/fortune.py" method="get" style="display:inline;">
+        <button type="submit">Get a fortune</button>
+    </form>
+    </div>
+</body>
+</html>

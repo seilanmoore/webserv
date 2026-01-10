@@ -6,7 +6,7 @@
 /*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/09 12:55:34 by smoore-a          #+#    #+#             */
-/*   Updated: 2025/10/10 14:03:39 by smoore-a         ###   ########.fr       */
+/*   Updated: 2025/12/28 15:13:01 by smoore-a         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,7 @@
 #include <fstream>
 #include <sstream>
 
+#include "Config.hpp"
 #include "Server.hpp"
 #include "Connection.hpp"
 #include "utils.hpp"
@@ -52,6 +53,7 @@ Webserv::Webserv()
       _pollFDType(),
       _nPollFD(0),
       _server(),
+      _serverConfigIndex(),
       _nRunningServer(0),
       _connection(),
       _nConnection(0)
@@ -72,12 +74,17 @@ Webserv::~Webserv()
 
 void Webserv::parse(int argc, char **argv)
 {
+  std::string configFile = DEFAULT_CONFIG_FILE_PATH;
+
   if (argc == 1)
-    ; // webserv.parseConfig(DEFAULT_CONFIG_FILE_PATH);
+    ; // Use default config path
   else if (argc == 2)
-    (void)argv; // webserv.parseConfig(argv[1]);
+    configFile = argv[1];
   else
     throw std::runtime_error("Usage: ./webserv [configuration file]");
+
+  _config.parse(configFile);
+  std::cerr << "Configuration loaded: " << _config.getServerCount() << " server(s)" << std::endl;
 }
 
 struct conf
@@ -88,18 +95,17 @@ struct conf
 
 void Webserv::initServer()
 {
-  // uint16_t nServer = _config.getNbServer();
-  nfds_t nServer = 5;
-  conf c[5] = {
-      {"name0", 8080},
-      {"name1", 8081},
-      {"name2", 8082},
-      {"name3", 8083},
-      {"name4", 8084},
-  };
+  const std::vector<ServerConfig> &servers = _config.getServers();
 
-  for (nfds_t i = 0; i < nServer; ++i)
-    addServer(c[i]);
+  for (size_t i = 0; i < servers.size(); ++i)
+  {
+    struct conf c;
+    c.name = servers[i].serverName.empty() ? "server" + static_cast<std::ostringstream &>(std::ostringstream() << i).str() : servers[i].serverName;
+    c.port = servers[i].port;
+    int fd = addServer(c);
+    if (fd != -1)
+      _serverConfigIndex[fd] = i;
+  }
 
   _nPollFD = static_cast<nfds_t>(_nRunningServer);
 }
@@ -108,7 +114,8 @@ void Webserv::loop()
 {
   signal(SIGINT, signalHandler);
   signal(SIGTERM, signalHandler);
-  signal(SIGPIPE, signalHandler);
+  // SIGPIPE is ignored in main() to prevent crash on broken pipe
+  // signal(SIGPIPE, signalHandler);
   int pollRet;
   while (true)
   {
@@ -122,8 +129,7 @@ void Webserv::loop()
 
     if (pollRet == 0)
     {
-      std::cerr << "Debug: timeout. Connected connections "
-                << _nPollFD - _nRunningServer << '\n';
+      // Timeout occurred, no events - continue polling
       continue;
     }
 
@@ -175,8 +181,12 @@ void Webserv::receiveConnectionRequest(nfds_t &pos)
 
   if (receiveStatus == 0)
   {
+    // Get the server config for this connection
+    int serverFD = connection->getServerFD();
+    size_t configIndex = _serverConfigIndex[serverFD];
+    const ServerConfig &serverConfig = _config.getServer(configIndex);
 
-    connection->generateResponse();
+    connection->generateResponse(serverConfig);
     _pollFD[pos].events = POLLOUT;
   }
 }
@@ -192,7 +202,8 @@ void Webserv::sendServerResponse(nfds_t &pos)
   }
   else if (sendStatus == 0)
   {
-    std::cerr << "Response: " << _connection[connectionFD]->getResponse();
+    // Debug output commented for production
+    // std::cerr << "Response: " << _connection[connectionFD]->getResponse();
 
     _pollFD[pos].events = POLLIN;
     _connection[connectionFD]->resetRequestResponse();
@@ -318,8 +329,9 @@ int Webserv::addConnection(int serverFD)
   addPollFD(connectionFD, CONNECTION);
   ++_nConnection;
 
-  std::cerr << "Connection accepted on port " << connection->getPort() << '\n';
-  printPoll(_nPollFD, _pollFD, _pollFDType);
+  // Debug output commented for production
+  // std::cerr << "Connection accepted on port " << connection->getPort() << '\n';
+  // printPoll(_nPollFD, _pollFD, _pollFDType);
   return 0;
 }
 
@@ -344,6 +356,11 @@ void Webserv::deleteConnection(nfds_t &pos)
   deletePollFD(pos);
 
   _server[serverFD]->deleteConnection(connectionFD);
+}
+
+const Config &Webserv::getConfig() const
+{
+  return _config;
 }
 
 void signalHandler(int signal)

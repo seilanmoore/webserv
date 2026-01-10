@@ -93,7 +93,8 @@ ssize_t Connection::receiveRequest()
 
   if (bytesRead == 0)
   {
-    std::cerr << "Connection on port " << getPort() << " disconnected" << std::endl;
+    // Debug output commented for production
+    // std::cerr << "Connection on port " << getPort() << " disconnected" << std::endl;
     return -1;
   }
 
@@ -112,17 +113,18 @@ ssize_t Connection::receiveRequest()
   recvStatus = _request->getRecvStatus();
   if (recvStatus == DONE)
   {
-    std::cerr << "Request from connection on port " << _port << ":\n"
-              << _request->getHeader() << '\n';
+    // Debug output commented for production
+    // std::cerr << "Request from connection on port " << _port << ":\n"
+    //           << _request->getHeader() << '\n';
     return 0;
   }
 
   return bytesRead;
 }
 
-void Connection::generateResponse()
+void Connection::generateResponse(const ServerConfig &serverConfig)
 {
-  _response->generateResponse(*_request);
+  _response->generateResponse(*_request, serverConfig);
 }
 
 ssize_t Connection::sendServerResponse()

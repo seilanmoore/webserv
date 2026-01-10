@@ -6,7 +6,7 @@
 /*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/09 12:36:27 by smoore-a          #+#    #+#             */
-/*   Updated: 2025/10/10 14:00:13 by smoore-a         ###   ########.fr       */
+/*   Updated: 2025/12/28 14:43:52 by smoore-a         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@
 #include <vector>
 #include <map>
 
+#include "Config.hpp"
 #include "Server.hpp"
 #include "Connection.hpp"
 #include "utils.hpp"
@@ -39,6 +40,8 @@ public:
   void initServer();
   void loop();
 
+  const Config &getConfig() const;
+
   void checkFDReturnedEvents();
 
   void receiveConnectionRequest(nfds_t &pos);
@@ -56,13 +59,14 @@ public:
   void deleteConnection(nfds_t &pos);
 
 private:
-  // Config _config;
+  Config _config;
 
   std::vector<struct pollfd> _pollFD;
   std::vector<ePollFDType> _pollFDType;
   nfds_t _nPollFD;
 
   std::map<int, Server *> _server;
+  std::map<int, size_t> _serverConfigIndex; // Maps server FD to config index
   nfds_t _nRunningServer;
 
   std::map<int, Connection *> _connection;

@@ -19,6 +19,7 @@
 
 #include <iostream>
 
+#include "Config.hpp"
 #include "Request.hpp"
 #include "Response.hpp"
 
@@ -34,7 +35,7 @@ public:
 
   ssize_t receiveRequest();
 
-  void generateResponse();
+  void generateResponse(const ServerConfig &serverConfig);
   ssize_t sendServerResponse();
 
   void resetRequestResponse();

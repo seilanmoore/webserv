@@ -3,22 +3,27 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mjeannin <mjeannin@student.42.fr>          +#+  +:+       +#+        */
+/*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/01 11:24:30 by smoore-a          #+#    #+#             */
-/*   Updated: 2025/10/01 15:09:31 by mjeannin         ###   ########.fr       */
+/*   Updated: 2025/12/28 14:24:36 by smoore-a         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <exception>
 #include <iostream>
 #include <stdexcept>
+#include <signal.h>
 
 #include "Webserv.hpp"
 
 int main(int argc, char **argv, char **envp)
 {
   (void)envp;
+
+  // Ignore SIGPIPE to prevent crash when client closes connection early
+  signal(SIGPIPE, SIG_IGN);
+
   Webserv webserv;
   try
   {
