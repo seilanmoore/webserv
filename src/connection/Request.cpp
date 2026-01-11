@@ -6,7 +6,7 @@
 /*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/02 20:00:09 by smoore-a          #+#    #+#             */
-/*   Updated: 2025/12/28 14:37:18 by smoore-a         ###   ########.fr       */
+/*   Updated: 2026/01/10 20:59:45 by smoore-a         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@ Request::Request()
       _version(),
 
       _host(),
-      _keepAlive(false),
+      _keepAlive(true),
 
       _ifModifiedSince(),
       _ifNoneMatch(),
@@ -133,7 +133,12 @@ void Request::parse(const std::string &rawRequest)
             else if (key == "Content-Length")
                 _contentLength = static_cast<size_t>(std::atol(value.c_str()));
             else if (key == "Connection")
-                _keepAlive = (value == "keep-alive");
+            {
+                std::string lower = value;
+                for (size_t i = 0; i < lower.length(); ++i)
+                    lower[i] = static_cast<char>(std::tolower(static_cast<unsigned char>(lower[i])));
+                _keepAlive = (lower != "close");
+            }
             else if (key == "If-Modified-Since")
                 _ifModifiedSince = value;
             else if (key == "If-None-Match")
@@ -383,9 +388,19 @@ bool Request::isChunked() const
     return _isChunked;
 }
 
+bool Request::isKeepAlive() const
+{
+    return _keepAlive;
+}
+
 const std::string &Request::getTransferEncoding() const
 {
     return _transferEncoding;
+}
+
+const std::map<std::string, std::string> &Request::getOtherHeaders() const
+{
+    return _otherHeaders;
 }
 
 // ============================================================================

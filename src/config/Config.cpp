@@ -6,7 +6,7 @@
 /*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/10 13:44:26 by smoore-a          #+#    #+#             */
-/*   Updated: 2025/12/28 14:04:24 by smoore-a         ###   ########.fr       */
+/*   Updated: 2026/01/10 19:31:52 by smoore-a         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,8 @@ LocationConfig::LocationConfig()
       cgiEnable(false),
       cgiPass(),
       redirectCode(0),
-      redirectUrl()
+      redirectUrl(),
+      clientMaxBodySize(0)
 {
   // Default allowed methods
   allowedMethods.insert("GET");
@@ -474,6 +475,15 @@ void Config::parseLocationDirective(const std::vector<std::string> &tokens, size
     std::string interpreter = tokens[pos];
     ++pos;
     location.cgiPass[extension] = interpreter;
+    if (pos < tokens.size() && tokens[pos] == ";")
+      ++pos;
+  }
+  else if (directive == "client_max_body_size")
+  {
+    if (pos >= tokens.size())
+      throw std::runtime_error("Config: Expected value after 'client_max_body_size'");
+    location.clientMaxBodySize = parseSize(tokens[pos]);
+    ++pos;
     if (pos < tokens.size() && tokens[pos] == ";")
       ++pos;
   }

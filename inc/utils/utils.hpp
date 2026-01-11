@@ -6,7 +6,7 @@
 /*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/08 14:07:41 by smoore-a          #+#    #+#             */
-/*   Updated: 2025/10/02 20:03:15 by smoore-a         ###   ########.fr       */
+/*   Updated: 2026/01/11 18:13:42 by smoore-a         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,10 +57,10 @@
 
 //////////////////////////////////////
 
-#define DEFAULT_CONFIG_FILE_PATH "./config/default.conf"
+#define DEFAULT_CONFIG_FILE_PATH "./config/test.conf"
 
 #define MAX_FD 1021
-#define BUFFER_SIZE 10
+#define BUFFER_SIZE 65536
 
 void ft_strcpy(char *dst, const char *src);
 void *ft_memset(void *ptr, int value, size_t num);

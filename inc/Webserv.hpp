@@ -6,7 +6,7 @@
 /*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/09 12:36:27 by smoore-a          #+#    #+#             */
-/*   Updated: 2025/12/28 14:43:52 by smoore-a         ###   ########.fr       */
+/*   Updated: 2026/01/11 18:46:15 by smoore-a         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,10 +24,26 @@
 #include "Connection.hpp"
 #include "utils.hpp"
 
+// Structure to track CGI process state
+struct CgiState
+{
+  pid_t pid;                   // CGI process ID
+  int stdinFd;                 // Pipe to write to CGI stdin
+  int stdoutFd;                // Pipe to read from CGI stdout
+  int connectionFd;            // The connection waiting for this CGI
+  std::vector<char> inputData; // Data to write to CGI
+  size_t inputWritten;         // Bytes written so far
+  std::string outputData;      // Data read from CGI
+  bool stdinClosed;            // stdin pipe closed?
+  bool stdoutClosed;           // stdout pipe closed (EOF)?
+};
+
 typedef enum ePollFDType
 {
   SERVER,
-  CONNECTION
+  CONNECTION,
+  CGI_STDIN,
+  CGI_STDOUT
 } tPollFDType;
 
 class Webserv
@@ -50,6 +66,7 @@ public:
   void addPollFD(int fd, tPollFDType fdType);
   void deletePollFD(nfds_t &pos);
   void deletePollFD(int fd);
+  void removePollFD(nfds_t &pos); // Remove from poll without closing fd
 
   int addServer(struct conf c);
   void deleteServer(int fd);
@@ -71,6 +88,15 @@ private:
 
   std::map<int, Connection *> _connection;
   nfds_t _nConnection;
+
+  // CGI state management
+  std::map<int, CgiState *> _cgiByPipe;       // Maps pipe FD to CGI state
+  std::map<int, CgiState *> _cgiByConnection; // Maps connection FD to CGI state
+
+  void handleCgiStdin(nfds_t &pos);
+  void handleCgiStdout(nfds_t &pos);
+  void finishCgi(CgiState *cgi);
+  void cleanupCgi(CgiState *cgi);
 
   Webserv(const Webserv &other);
   Webserv &operator=(const Webserv &other);

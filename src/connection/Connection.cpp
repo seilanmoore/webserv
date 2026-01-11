@@ -154,3 +154,17 @@ const std::string &Connection::getResponse() const
 {
   return _response->getResponse();
 }
+
+bool Connection::shouldKeepAlive() const
+{
+  if (_request == NULL)
+    return false;
+  return _request->isKeepAlive();
+}
+
+bool Connection::hasPendingCgi() const
+{
+  if (_response == NULL)
+    return false;
+  return _response->hasPendingCgi();
+}

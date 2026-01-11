@@ -44,6 +44,11 @@ public:
   int getServerFD() const;
 
   const std::string &getResponse() const;
+  bool shouldKeepAlive() const;
+
+  // CGI support
+  bool hasPendingCgi() const;
+  Response *getResponsePtr() { return _response; }
 
 private:
   int _fd;

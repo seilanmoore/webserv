@@ -6,7 +6,7 @@
 /*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/21 14:26:31 by smoore-a          #+#    #+#             */
-/*   Updated: 2025/12/28 15:17:38 by smoore-a         ###   ########.fr       */
+/*   Updated: 2026/01/11 18:55:28 by smoore-a         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,7 +57,8 @@ Response::Response()
       _response(),
       _useChunked(false),
       _headersSent(false),
-      _chunkOffset(0)
+      _chunkOffset(0),
+      _isHeadRequest(false)
 {
 }
 
@@ -86,6 +87,9 @@ void Response::generateResponse(const Request &request, const ServerConfig &serv
   const std::string &method = request.getMethod();
   const std::string &uri = request.getPath();
 
+  // Track HEAD requests - they use GET logic but must not send body
+  _isHeadRequest = (method == "HEAD");
+
   // Find matching location
   const LocationConfig *location = server.matchLocation(uri);
 
@@ -99,20 +103,19 @@ void Response::generateResponse(const Request &request, const ServerConfig &serv
   // Check if method is allowed
   if (location)
   {
-    std::string checkMethod = method;
-    // HEAD is allowed if GET is allowed (HEAD is GET without body)
-    if (method == "HEAD")
-      checkMethod = "GET";
-
-    if (location->allowedMethods.find(checkMethod) == location->allowedMethods.end())
+    if (location->allowedMethods.find(method) == location->allowedMethods.end())
     {
       generateErrorPage(405, server);
       return;
     }
   }
 
-  // Check body size limit
-  if (request.getContentLength() > server.clientMaxBodySize)
+  // Check body size limit (location setting takes precedence over server setting)
+  size_t maxBodySize = server.clientMaxBodySize;
+  if (location && location->clientMaxBodySize > 0)
+    maxBodySize = location->clientMaxBodySize;
+
+  if (request.getContentLength() > maxBodySize)
   {
     generateErrorPage(413, server);
     return;
@@ -142,18 +145,6 @@ void Response::handleGet(const Request &request, const ServerConfig &server,
 
   // Build full file path
   std::string fullPath = buildFullPath(root, uri, locationPath);
-
-  // Check for CGI
-  if (location && location->cgiEnable)
-  {
-    std::string ext = request.getFileExtension();
-    std::map<std::string, std::string>::const_iterator it = location->cgiPass.find(ext);
-    if (it != location->cgiPass.end())
-    {
-      handleCgi(request, fullPath, it->second);
-      return;
-    }
-  }
 
   // Check if path exists
   if (!fileExists(fullPath))
@@ -244,8 +235,12 @@ void Response::handlePost(const Request &request, const ServerConfig &server,
   }
   else
   {
-    generateErrorPage(403, server);
-    return;
+    // No CGI, no upload - just accept the POST and return 200
+    _statusCode = 200;
+    _statusMessage = "OK";
+    _contentType = "text/html";
+    _fileContent = "<html><body><h1>POST received</h1></body></html>";
+    _fileFound = true;
   }
 
   // Build response
@@ -415,7 +410,8 @@ void Response::serveFile(const std::string &filePath)
                 oss.str() + "\r\n"
                             "\r\n";
 
-    if (!_isBinary)
+    // For HEAD requests, don't include body
+    if (!_isBinary && !_isHeadRequest)
       _response += _fileContent;
   }
 }
@@ -452,8 +448,8 @@ void Response::serveDirectory(const std::string &dirPath, const std::string &uri
     return;
   }
 
-  // No index file and no autoindex
-  generateErrorPage(403, server);
+  // No index file and no autoindex - return 404
+  generateErrorPage(404, server);
 }
 
 void Response::generateDirectoryListing(const std::string &dirPath, const std::string &uri)
@@ -548,8 +544,11 @@ void Response::generateDirectoryListing(const std::string &dirPath, const std::s
               "Content-Type: text/html\r\n"
               "Content-Length: " +
               oss.str() + "\r\n"
-                          "\r\n" +
-              _fileContent;
+                          "\r\n";
+
+  // For HEAD requests, don't include body
+  if (!_isHeadRequest)
+    _response += _fileContent;
 }
 
 // ============================================================================
@@ -611,8 +610,11 @@ void Response::generateErrorPage(int code, const ServerConfig &server)
                                                                    "Content-Type: text/html\r\n"
                                                                    "Content-Length: " +
               lengthStr.str() + "\r\n"
-                                "\r\n" +
-              _fileContent;
+                                "\r\n";
+
+  // For HEAD requests, don't include body
+  if (!_isHeadRequest)
+    _response += _fileContent;
 }
 
 // ============================================================================
@@ -649,35 +651,32 @@ void Response::handleRedirect(int code, const std::string &url)
                     "Content-Type: text/html\r\n"
                     "Content-Length: " +
               lengthStr.str() + "\r\n"
-                                "\r\n" +
-              _fileContent;
+                                "\r\n";
+
+  // For HEAD requests, don't include body
+  if (!_isHeadRequest)
+    _response += _fileContent;
 }
 
 // ============================================================================
-// CGI Handler
+// CGI Handler (now non-blocking - starts CGI and returns immediately)
 // ============================================================================
 
 void Response::handleCgi(const Request &request, const std::string &scriptPath,
                          const std::string &interpreter)
 {
-  // Check if script exists
-  if (!fileExists(scriptPath))
-  {
-    _statusCode = 404;
-    _statusMessage = "Not Found";
-    _contentType = "text/html";
-    _fileContent = "<html><body><h1>404 Not Found - CGI Script</h1></body></html>";
-    _contentLength = _fileContent.length();
+  // Start CGI process - returns immediately, CGI runs asynchronously
+  // The actual response will be built later when CGI completes
+  startCgi(request, scriptPath, interpreter);
+}
 
-    std::ostringstream oss;
-    oss << _contentLength;
-    _response = "HTTP/1.1 404 Not Found\r\n"
-                "Content-Type: text/html\r\n"
-                "Content-Length: " +
-                oss.str() + "\r\n\r\n" + _fileContent;
-    return;
-  }
+// ============================================================================
+// Non-blocking CGI functions
+// ============================================================================
 
+bool Response::startCgi(const Request &request, const std::string &scriptPath,
+                        const std::string &interpreter)
+{
   // Create pipes: one for stdin (to send body), one for stdout (to receive response)
   int pipeIn[2];  // Parent writes, child reads (stdin)
   int pipeOut[2]; // Child writes, parent reads (stdout)
@@ -689,14 +688,10 @@ void Response::handleCgi(const Request &request, const std::string &scriptPath,
     _fileContent = "<html><body><h1>500 Internal Server Error - CGI pipe failed</h1></body></html>";
     _contentType = "text/html";
     _contentLength = _fileContent.length();
-
     std::ostringstream oss;
     oss << _contentLength;
-    _response = "HTTP/1.1 500 Internal Server Error\r\n"
-                "Content-Type: text/html\r\n"
-                "Content-Length: " +
-                oss.str() + "\r\n\r\n" + _fileContent;
-    return;
+    _response = "HTTP/1.1 500 Internal Server Error\r\nContent-Type: text/html\r\nContent-Length: " + oss.str() + "\r\n\r\n" + _fileContent;
+    return false;
   }
 
   pid_t pid = fork();
@@ -711,29 +706,32 @@ void Response::handleCgi(const Request &request, const std::string &scriptPath,
     _fileContent = "<html><body><h1>500 Internal Server Error - CGI fork failed</h1></body></html>";
     _contentType = "text/html";
     _contentLength = _fileContent.length();
-
     std::ostringstream oss;
     oss << _contentLength;
-    _response = "HTTP/1.1 500 Internal Server Error\r\n"
-                "Content-Type: text/html\r\n"
-                "Content-Length: " +
-                oss.str() + "\r\n\r\n" + _fileContent;
-    return;
+    _response = "HTTP/1.1 500 Internal Server Error\r\nContent-Type: text/html\r\nContent-Length: " + oss.str() + "\r\n\r\n" + _fileContent;
+    return false;
   }
 
   if (pid == 0)
   {
     // Child process
-    close(pipeIn[1]);  // Close write end of stdin pipe
-    close(pipeOut[0]); // Close read end of stdout pipe
-
+    close(pipeIn[1]);
+    close(pipeOut[0]);
     dup2(pipeIn[0], STDIN_FILENO);
     dup2(pipeOut[1], STDOUT_FILENO);
-
     close(pipeIn[0]);
     close(pipeOut[1]);
 
-    // Change to script directory and get script name
+    // Get absolute path of interpreter
+    std::string absInterpreter = interpreter;
+    if (!interpreter.empty() && interpreter[0] != '/')
+    {
+      char cwd[1024];
+      if (getcwd(cwd, sizeof(cwd)))
+        absInterpreter = std::string(cwd) + "/" + interpreter;
+    }
+
+    // Change to script directory
     std::string scriptName = scriptPath;
     std::string scriptDir = ".";
     size_t lastSlash = scriptPath.find_last_of('/');
@@ -744,190 +742,261 @@ void Response::handleCgi(const Request &request, const std::string &scriptPath,
       chdir(scriptDir.c_str());
     }
 
-    // Build environment variables
+    // Build environment
     std::vector<std::string> envVars;
     envVars.push_back("REQUEST_METHOD=" + request.getMethod());
     envVars.push_back("QUERY_STRING=" + request.getQueryString());
     envVars.push_back("SCRIPT_FILENAME=" + scriptName);
-    envVars.push_back("SCRIPT_NAME=" + request.getPath());
     envVars.push_back("CONTENT_TYPE=" + request.getContentType());
-
-    std::ostringstream contentLenOss;
-    contentLenOss << request.getContentLength();
-    envVars.push_back("CONTENT_LENGTH=" + contentLenOss.str());
-
+    std::ostringstream clOss;
+    clOss << request.getContentLength();
+    envVars.push_back("CONTENT_LENGTH=" + clOss.str());
     envVars.push_back("SERVER_PROTOCOL=HTTP/1.1");
     envVars.push_back("SERVER_SOFTWARE=webserv/1.0");
     envVars.push_back("GATEWAY_INTERFACE=CGI/1.1");
     envVars.push_back("PATH_INFO=" + request.getPath());
     envVars.push_back("REDIRECT_STATUS=200");
 
-    // Build envp array
+    // Add HTTP headers
+    const std::map<std::string, std::string> &headers = request.getOtherHeaders();
+    for (std::map<std::string, std::string>::const_iterator it = headers.begin(); it != headers.end(); ++it)
+    {
+      std::string envName = "HTTP_";
+      for (size_t i = 0; i < it->first.size(); ++i)
+      {
+        char c = it->first[i];
+        envName += (c == '-') ? '_' : static_cast<char>(std::toupper(static_cast<unsigned char>(c)));
+      }
+      envVars.push_back(envName + "=" + it->second);
+    }
+
     std::vector<char *> envp;
     for (size_t i = 0; i < envVars.size(); ++i)
       envp.push_back(const_cast<char *>(envVars[i].c_str()));
     envp.push_back(NULL);
 
-    // Build argv
-    char interpBuf[256];
-    char scriptBuf[256];
-    strncpy(interpBuf, interpreter.c_str(), 255);
-    interpBuf[255] = '\0';
+    char interpBuf[1024], scriptBuf[256];
+    strncpy(interpBuf, absInterpreter.c_str(), 1023);
+    interpBuf[1023] = '\0';
     strncpy(scriptBuf, scriptName.c_str(), 255);
     scriptBuf[255] = '\0';
 
-    char *argv[3];
-    argv[0] = interpBuf;
-    argv[1] = scriptBuf;
-    argv[2] = NULL;
-
+    char *argv[3] = {interpBuf, scriptBuf, NULL};
     execve(argv[0], argv, &envp[0]);
-    std::cerr << "CGI exec failed for: " << scriptPath << std::endl;
     _exit(1);
   }
-  else
+
+  // Parent process - set up non-blocking CGI state
+  close(pipeIn[0]);
+  close(pipeOut[1]);
+
+  // Make pipes non-blocking (only F_SETFL and O_NONBLOCK allowed per subject)
+  fcntl(pipeIn[1], F_SETFL, O_NONBLOCK);
+  fcntl(pipeOut[0], F_SETFL, O_NONBLOCK);
+
+  // Initialize CGI state
+  _cgiInfo.pid = pid;
+  _cgiInfo.stdinFd = pipeIn[1];
+  _cgiInfo.stdoutFd = pipeOut[0];
+  _cgiInfo.inputData = request.getBody();
+  _cgiInfo.inputWritten = 0;
+  _cgiInfo.outputData.clear();
+  _cgiInfo.stdinClosed = false;
+  _cgiInfo.active = true;
+
+  // If no body to write, close stdin immediately
+  if (_cgiInfo.inputData.empty())
   {
-    // Parent process
-    close(pipeIn[0]);  // Close read end of stdin pipe
-    close(pipeOut[1]); // Close write end of stdout pipe
+    close(_cgiInfo.stdinFd);
+    _cgiInfo.stdinFd = -1;
+    _cgiInfo.stdinClosed = true;
+  }
 
-    // Send POST body to CGI stdin (if any)
-    const std::vector<char> &body = request.getBody();
-    if (!body.empty())
+  return true;
+}
+
+bool Response::writeCgiInput()
+{
+  if (!_cgiInfo.active || _cgiInfo.stdinClosed || _cgiInfo.stdinFd < 0)
+    return false;
+
+  size_t remaining = _cgiInfo.inputData.size() - _cgiInfo.inputWritten;
+  if (remaining == 0)
+  {
+    close(_cgiInfo.stdinFd);
+    _cgiInfo.stdinFd = -1;
+    _cgiInfo.stdinClosed = true;
+    return false;
+  }
+
+  size_t toWrite = remaining > 65536 ? 65536 : remaining;
+  ssize_t n = write(_cgiInfo.stdinFd, &_cgiInfo.inputData[_cgiInfo.inputWritten], toWrite);
+  if (n > 0)
+    _cgiInfo.inputWritten += n;
+  else if (n < 0 && errno != EAGAIN && errno != EWOULDBLOCK)
+  {
+    // Write error, close stdin
+    close(_cgiInfo.stdinFd);
+    _cgiInfo.stdinFd = -1;
+    _cgiInfo.stdinClosed = true;
+    return false;
+  }
+
+  remaining = _cgiInfo.inputData.size() - _cgiInfo.inputWritten;
+  if (remaining == 0)
+  {
+    close(_cgiInfo.stdinFd);
+    _cgiInfo.stdinFd = -1;
+    _cgiInfo.stdinClosed = true;
+    return false;
+  }
+  return true;
+}
+
+bool Response::readCgiOutput()
+{
+  if (!_cgiInfo.active || _cgiInfo.stdoutFd < 0)
+    return false;
+
+  char buffer[65536];
+  ssize_t n = read(_cgiInfo.stdoutFd, buffer, sizeof(buffer));
+  if (n > 0)
+  {
+    _cgiInfo.outputData.append(buffer, n);
+    return true;
+  }
+  else if (n == 0)
+  {
+    // EOF - CGI finished
+    return false;
+  }
+  else if (errno == EAGAIN || errno == EWOULDBLOCK)
+  {
+    // No data available yet
+    return true;
+  }
+  // Read error
+  return false;
+}
+
+void Response::finalizeCgiResponse()
+{
+  if (!_cgiInfo.active)
+    return;
+
+  // Close remaining pipes
+  if (_cgiInfo.stdinFd >= 0)
+  {
+    close(_cgiInfo.stdinFd);
+    _cgiInfo.stdinFd = -1;
+  }
+  if (_cgiInfo.stdoutFd >= 0)
+  {
+    close(_cgiInfo.stdoutFd);
+    _cgiInfo.stdoutFd = -1;
+  }
+
+  // Wait for child
+  if (_cgiInfo.pid > 0)
+  {
+    int status;
+    waitpid(_cgiInfo.pid, &status, 0);
+    _cgiInfo.pid = -1;
+  }
+
+  _cgiInfo.active = false;
+
+  // Process CGI output and build response
+  const std::string &cgiOutput = _cgiInfo.outputData;
+  if (!cgiOutput.empty())
+  {
+    if (cgiOutput.find("HTTP/1.") == 0)
     {
-      write(pipeIn[1], &body[0], body.size());
+      _response = cgiOutput;
     }
-    close(pipeIn[1]); // Close to signal EOF to child
-
-    // Make stdout pipe non-blocking
-    int flags = fcntl(pipeOut[0], F_GETFL, 0);
-    fcntl(pipeOut[0], F_SETFL, flags | O_NONBLOCK);
-
-    // Use poll() with timeout to read CGI output
-    std::string cgiOutput;
-    char buffer[4096];
-    struct pollfd pfd;
-    pfd.fd = pipeOut[0];
-    pfd.events = POLLIN;
-
-    static const int CGI_TIMEOUT_MS = 5000; // 5 second timeout
-
-    while (true)
+    else if (cgiOutput.find("Content-Type:") != std::string::npos ||
+             cgiOutput.find("Status:") != std::string::npos)
     {
-      int pollRet = poll(&pfd, 1, CGI_TIMEOUT_MS);
-
-      if (pollRet == -1)
+      size_t headerEnd = cgiOutput.find("\r\n\r\n");
+      size_t sepLen = 4;
+      if (headerEnd == std::string::npos)
       {
-        // Poll error
-        break;
+        headerEnd = cgiOutput.find("\n\n");
+        sepLen = 2;
       }
-      else if (pollRet == 0)
+      if (headerEnd != std::string::npos)
       {
-        // Timeout - kill the CGI process
-        kill(pid, SIGKILL);
-        close(pipeOut[0]);
-        waitpid(pid, NULL, 0);
+        std::string headers = cgiOutput.substr(0, headerEnd);
+        std::string body = cgiOutput.substr(headerEnd + sepLen);
 
-        _statusCode = 504;
-        _statusMessage = "Gateway Timeout";
-        _fileContent = "<html><body><h1>504 Gateway Timeout - CGI script timed out</h1></body></html>";
-        _contentType = "text/html";
-        _contentLength = _fileContent.length();
-
-        std::ostringstream oss;
-        oss << _contentLength;
-        _response = "HTTP/1.1 504 Gateway Timeout\r\n"
-                    "Content-Type: text/html\r\n"
-                    "Content-Length: " +
-                    oss.str() + "\r\n\r\n" + _fileContent;
-        return;
-      }
-
-      if (pfd.revents & POLLIN)
-      {
-        ssize_t n = read(pipeOut[0], buffer, sizeof(buffer) - 1);
-        if (n > 0)
+        std::string normalizedHeaders;
+        for (size_t i = 0; i < headers.size(); ++i)
         {
-          buffer[n] = '\0';
-          cgiOutput += buffer;
+          if (headers[i] == '\n' && (i == 0 || headers[i - 1] != '\r'))
+            normalizedHeaders += "\r\n";
+          else
+            normalizedHeaders += headers[i];
         }
-        else if (n == 0)
+
+        if (normalizedHeaders.find("Content-Length:") == std::string::npos)
         {
-          // EOF
-          break;
+          std::ostringstream oss;
+          oss << body.length();
+          _response = "HTTP/1.1 200 OK\r\n" + normalizedHeaders + "\r\nContent-Length: " + oss.str() + "\r\n\r\n" + body;
         }
         else
         {
-          // n < 0: Read error or would block - poll() already indicated readiness
-          // so any error here is a real error, break the loop
-          break;
+          _response = "HTTP/1.1 200 OK\r\n" + normalizedHeaders + "\r\n\r\n" + body;
         }
-      }
-
-      if (pfd.revents & (POLLHUP | POLLERR))
-      {
-        // Pipe closed or error
-        // Read any remaining data
-        ssize_t n;
-        while ((n = read(pipeOut[0], buffer, sizeof(buffer) - 1)) > 0)
-        {
-          buffer[n] = '\0';
-          cgiOutput += buffer;
-        }
-        break;
-      }
-    }
-
-    close(pipeOut[0]);
-
-    // Wait for child to finish
-    int status;
-    waitpid(pid, &status, 0);
-
-    if (!cgiOutput.empty())
-    {
-      // Check if CGI already provides HTTP status line
-      if (cgiOutput.find("HTTP/1.") == 0)
-      {
-        // CGI provides full HTTP response including status line
-        _response = cgiOutput;
-      }
-      else if (cgiOutput.find("Content-Type:") != std::string::npos ||
-               cgiOutput.find("Status:") != std::string::npos)
-      {
-        // CGI provides headers but not status line - prepend HTTP status line
-        _response = "HTTP/1.1 200 OK\r\n" + cgiOutput;
       }
       else
       {
-        // CGI only provides body
-        std::ostringstream oss;
-        oss << cgiOutput.length();
-        _response = "HTTP/1.1 200 OK\r\n"
-                    "Content-Type: text/html\r\n"
-                    "Content-Length: " +
-                    oss.str() + "\r\n"
-                                "\r\n" +
-                    cgiOutput;
+        _response = "HTTP/1.1 200 OK\r\n" + cgiOutput;
       }
-      _fileFound = true;
     }
     else
     {
-      _statusCode = 500;
-      _statusMessage = "Internal Server Error";
-      _fileContent = "<html><body><h1>500 Internal Server Error - CGI produced no output</h1></body></html>";
-      _contentType = "text/html";
-      _contentLength = _fileContent.length();
-
       std::ostringstream oss;
-      oss << _contentLength;
-      _response = "HTTP/1.1 500 Internal Server Error\r\n"
-                  "Content-Type: text/html\r\n"
-                  "Content-Length: " +
-                  oss.str() + "\r\n\r\n" + _fileContent;
+      oss << cgiOutput.length();
+      _response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " + oss.str() + "\r\n\r\n" + cgiOutput;
     }
+    _fileFound = true;
   }
+  else
+  {
+    _statusCode = 500;
+    _statusMessage = "Internal Server Error";
+    _fileContent = "<html><body><h1>500 Internal Server Error - CGI produced no output</h1></body></html>";
+    _contentType = "text/html";
+    _contentLength = _fileContent.length();
+    std::ostringstream oss;
+    oss << _contentLength;
+    _response = "HTTP/1.1 500 Internal Server Error\r\nContent-Type: text/html\r\nContent-Length: " + oss.str() + "\r\n\r\n" + _fileContent;
+  }
+}
+
+void Response::killCgi()
+{
+  if (!_cgiInfo.active)
+    return;
+
+  if (_cgiInfo.stdinFd >= 0)
+  {
+    close(_cgiInfo.stdinFd);
+    _cgiInfo.stdinFd = -1;
+  }
+  if (_cgiInfo.stdoutFd >= 0)
+  {
+    close(_cgiInfo.stdoutFd);
+    _cgiInfo.stdoutFd = -1;
+  }
+  if (_cgiInfo.pid > 0)
+  {
+    kill(_cgiInfo.pid, SIGKILL);
+    waitpid(_cgiInfo.pid, NULL, 0);
+    _cgiInfo.pid = -1;
+  }
+  _cgiInfo.active = false;
 }
 
 // ============================================================================
@@ -1033,7 +1102,8 @@ ssize_t Response::sendResponse(int fd)
 
   if (static_cast<size_t>(_bytesSent) >= _response.length())
   {
-    if (_isBinary && !_binaryContent.empty())
+    // For HEAD requests, don't send binary content
+    if (_isBinary && !_binaryContent.empty() && !_isHeadRequest)
     {
       _sendingBinary = true;
       return _bytesSent;

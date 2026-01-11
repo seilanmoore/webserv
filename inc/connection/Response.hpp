@@ -6,7 +6,7 @@
 /*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/21 14:26:27 by smoore-a          #+#    #+#             */
-/*   Updated: 2025/12/28 14:37:18 by smoore-a         ###   ########.fr       */
+/*   Updated: 2026/01/11 18:24:13 by smoore-a         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,21 @@
 #include "Request.hpp"
 #include "Config.hpp"
 
+// CGI state for non-blocking operation
+struct CgiInfo
+{
+  pid_t pid;
+  int stdinFd;
+  int stdoutFd;
+  std::vector<char> inputData;
+  size_t inputWritten;
+  std::string outputData;
+  bool stdinClosed;
+  bool active;
+
+  CgiInfo() : pid(-1), stdinFd(-1), stdoutFd(-1), inputWritten(0), stdinClosed(false), active(false) {}
+};
+
 class Response
 {
 public:
@@ -36,6 +51,15 @@ public:
   ssize_t sendResponse(int fd);
 
   const std::string &getResponse() const;
+
+  // Non-blocking CGI methods (public for Webserv access)
+  void finalizeCgiResponse();
+  void killCgi();
+
+  // CGI state accessors
+  bool hasPendingCgi() const { return _cgiInfo.active; }
+  CgiInfo &getCgiInfo() { return _cgiInfo; }
+  const CgiInfo &getCgiInfo() const { return _cgiInfo; }
 
 private:
   // Status
@@ -63,6 +87,12 @@ private:
   size_t _chunkOffset;
   static const size_t CHUNK_SIZE = 8192;
 
+  // HEAD request flag - body should not be sent
+  bool _isHeadRequest;
+
+  // CGI state for non-blocking operation
+  CgiInfo _cgiInfo;
+
   // Private methods
   void handleGet(const Request &request, const ServerConfig &server,
                  const LocationConfig *location);
@@ -79,6 +109,12 @@ private:
   void handleRedirect(int code, const std::string &url);
   void handleCgi(const Request &request, const std::string &scriptPath,
                  const std::string &interpreter);
+
+  // Non-blocking CGI methods (private helpers)
+  bool startCgi(const Request &request, const std::string &scriptPath,
+                const std::string &interpreter);
+  bool writeCgiInput();
+  bool readCgiOutput();
 
   std::string getStatusMessage(int code) const;
   std::string getMimeType(const std::string &path) const;

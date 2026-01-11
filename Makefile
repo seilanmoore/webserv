@@ -6,7 +6,7 @@
 #    By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/09/08 14:07:03 by smoore-a          #+#    #+#              #
-#    Updated: 2025/12/28 14:04:24 by smoore-a         ###   ########.fr        #
+#    Updated: 2026/01/10 18:32:43 by smoore-a         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -84,6 +84,8 @@ $(NAME) : $(OBJ_FILE)
 clean :
 	@$(RM) $(OBJ_FILE)
 	@$(RM) $(OBJ_DIR)
+	@pkill $(NAME_SHORT) 2>/dev/null || true
+	@sleep 0.2
 
 fclean : clean
 	@$(RM) $(NAME)

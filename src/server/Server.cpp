@@ -6,7 +6,7 @@
 /*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/08 14:07:21 by smoore-a          #+#    #+#             */
-/*   Updated: 2025/10/10 13:59:01 by smoore-a         ###   ########.fr       */
+/*   Updated: 2026/01/10 21:11:02 by smoore-a         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,7 +82,7 @@ int Server::setupServer(const std::string &name, uint16_t port)
     return -1;
   }
 
-  if (listen(_fd, 10) < 0)
+  if (listen(_fd, 1024) < 0)
   {
     std::cerr << errorStr(errno) << '\n';
     return -1;
