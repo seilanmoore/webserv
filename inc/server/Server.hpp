@@ -6,7 +6,7 @@
 /*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/08 14:06:57 by smoore-a          #+#    #+#             */
-/*   Updated: 2025/10/10 13:59:01 by smoore-a         ###   ########.fr       */
+/*   Updated: 2026/01/14 19:47:54 by smoore-a         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,8 +43,6 @@ public:
   const std::map<int, Connection *> &getConnection() const;
   nfds_t getNConnection() const;
 
-  void setFD(int fd);
-  void setAddress(const t_sockaddr_in &address);
   void setConnection(int fd, Connection *connection);
 
 private:

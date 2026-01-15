@@ -6,7 +6,7 @@
 #    By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/09/08 14:07:03 by smoore-a          #+#    #+#              #
-#    Updated: 2026/01/10 18:32:43 by smoore-a         ###   ########.fr        #
+#    Updated: 2026/01/14 19:02:17 by smoore-a         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -20,48 +20,43 @@ INC_SERVER_DIR = $(INC_DIR)/server
 INC_CONNECTION_DIR = $(INC_DIR)/connection
 INC_UTIL_DIR = $(INC_DIR)/utils
 INC_CONFIG_DIR = $(INC_DIR)/config
-INC_CGI_DIR = $(INC_DIR)/cgi
 
 INC = -I$(INC_DIR) \
 	-I$(INC_SERVER_DIR) \
 	-I$(INC_CONNECTION_DIR) \
 	-I$(INC_UTIL_DIR) \
-	-I$(INC_CONFIG_DIR) \
-	-I$(INC_CGI_DIR)
+	-I$(INC_CONFIG_DIR)
 
 SRC_DIR = src
 SERVER_DIR = $(SRC_DIR)/server
 CONNECTION_DIR = $(SRC_DIR)/connection
 UTILS_DIR = $(SRC_DIR)/utils
 CONFIG_DIR = $(SRC_DIR)/config
-CGI_DIR = $(SRC_DIR)/cgi
 
 OBJ_DIR = obj
 OBJ_FILE = $(SRCS:$(SRC_DIR)%.cpp=$(OBJ_DIR)/%.o)
 
 SRC_FILE = main.cpp \
-	Webserv.cpp
+	Webserv.cpp \
+	WebservCgi.cpp
 
-UTIL_FILE = Reader.cpp \
-	utils.cpp
+UTIL_FILE = utils.cpp
 
 CONNECTION_FILE = Connection.cpp \
 	Request.cpp \
 	Response.cpp \
+	ResponseCgi.cpp \
+	HttpUtils.cpp
 
 SERVER_FILE = Server.cpp
 
 CONFIG_FILE = Config.cpp
 
-CGI_FILE = CgiHandler.cpp
-
-
 SRCS =	$(addprefix $(SRC_DIR)/, $(SRC_FILE)) \
 	$(addprefix $(UTILS_DIR)/, $(UTIL_FILE)) \
 	$(addprefix $(CONNECTION_DIR)/, $(CONNECTION_FILE)) \
 	$(addprefix $(SERVER_DIR)/, $(SERVER_FILE)) \
-	$(addprefix $(CONFIG_DIR)/, $(CONFIG_FILE)) \
-	$(addprefix $(CGI_DIR)/, $(CGI_FILE))
+	$(addprefix $(CONFIG_DIR)/, $(CONFIG_FILE))
 
 _COLOR = \033[32m
 _BOLDCOLOR = \033[32;1m

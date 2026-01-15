@@ -43,7 +43,6 @@ public:
   uint16_t getPort() const;
   int getServerFD() const;
 
-  const std::string &getResponse() const;
   bool shouldKeepAlive() const;
 
   // CGI support

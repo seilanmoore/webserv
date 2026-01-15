@@ -6,7 +6,7 @@
 /*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/09 12:55:34 by smoore-a          #+#    #+#             */
-/*   Updated: 2026/01/11 19:06:42 by smoore-a         ###   ########.fr       */
+/*   Updated: 2026/01/14 19:57:35 by smoore-a         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,9 +32,9 @@
 #include "Response.hpp"
 #include "utils.hpp"
 
-///////////////////////////////////////////
-///////////////////////////////////////////
-///////////////////////////////////////////
+// ============================================================================
+// Debug Helpers
+// ============================================================================
 
 static void printPoll(nfds_t nPollFD, const std::vector<struct pollfd> &pollFD, const std::vector<ePollFDType> &type)
 {
@@ -46,9 +46,9 @@ static void printPoll(nfds_t nPollFD, const std::vector<struct pollfd> &pollFD, 
   }
 }
 
-///////////////////////////////////////////
-///////////////////////////////////////////
-///////////////////////////////////////////
+// ============================================================================
+// Constructor / Destructor
+// ============================================================================
 
 Webserv::Webserv()
     : _pollFD(),
@@ -59,7 +59,6 @@ Webserv::Webserv()
       _nRunningServer(0),
       _connection(),
       _nConnection(0)
-
 {
 }
 
@@ -73,6 +72,10 @@ Webserv::~Webserv()
   for (nfds_t i = 0; i < _nPollFD; ++i)
     close(_pollFD[i].fd);
 }
+
+// ============================================================================
+// Initialization
+// ============================================================================
 
 void Webserv::parse(int argc, char **argv)
 {
@@ -89,19 +92,13 @@ void Webserv::parse(int argc, char **argv)
   std::cerr << "Configuration loaded: " << _config.getServerCount() << " server(s)" << std::endl;
 }
 
-struct conf
-{
-  std::string name;
-  uint16_t port;
-};
-
 void Webserv::initServer()
 {
   const std::vector<ServerConfig> &servers = _config.getServers();
 
   for (size_t i = 0; i < servers.size(); ++i)
   {
-    struct conf c;
+    ServerConf c;
     c.name = servers[i].serverName.empty() ? "server" + static_cast<std::ostringstream &>(std::ostringstream() << i).str() : servers[i].serverName;
     c.port = servers[i].port;
     int fd = addServer(c);
@@ -112,12 +109,15 @@ void Webserv::initServer()
   _nPollFD = static_cast<nfds_t>(_nRunningServer);
 }
 
+// ============================================================================
+// Main Event Loop
+// ============================================================================
+
 void Webserv::loop()
 {
   signal(SIGINT, signalHandler);
   signal(SIGTERM, signalHandler);
   // SIGPIPE is ignored in main() to prevent crash on broken pipe
-  // signal(SIGPIPE, signalHandler);
   int pollRet;
   while (true)
   {
@@ -150,11 +150,15 @@ void Webserv::checkFDReturnedEvents()
         restartServer(pos);
       else if (_pollFDType[pos] == CONNECTION)
         deleteConnection(pos);
-      else if (_pollFDType[pos] == CGI_STDIN || _pollFDType[pos] == CGI_STDOUT)
+      else if (_pollFDType[pos] == CGI_STDIN)
       {
-        // CGI pipe error/close
-        if (_pollFDType[pos] == CGI_STDOUT)
-          handleCgiStdout(pos); // Try to read remaining data
+        // CGI stdin pipe error - close it and mark as done
+        handleCgiStdinError(pos);
+      }
+      else if (_pollFDType[pos] == CGI_STDOUT)
+      {
+        // CGI stdout pipe error/close - try to read remaining data
+        handleCgiStdout(pos);
       }
     }
     else if (_pollFD[pos].revents & POLLIN)
@@ -179,10 +183,21 @@ void Webserv::checkFDReturnedEvents()
   }
 }
 
+// ============================================================================
+// Connection Request/Response Handling
+// ============================================================================
+
 void Webserv::receiveConnectionRequest(nfds_t &pos)
 {
   int connectionFD = _pollFD[pos].fd;
   Connection *connection = _connection[connectionFD];
+
+  // If there's a pending CGI, we keep POLLIN to detect client disconnect
+  // but we don't actually read any data - just ignore POLLIN events
+  if (connection->hasPendingCgi())
+  {
+    return;
+  }
 
   ssize_t receiveStatus = connection->receiveRequest();
 
@@ -206,7 +221,7 @@ void Webserv::receiveConnectionRequest(nfds_t &pos)
     {
       // Add CGI pipes to poll
       Response *resp = connection->getResponsePtr();
-      CgiInfo &cgi = resp->getCgiInfo();
+      CgiState &cgi = resp->getCgiInfo();
 
       // Create CGI state
       CgiState *state = new CgiState();
@@ -214,9 +229,9 @@ void Webserv::receiveConnectionRequest(nfds_t &pos)
       state->stdinFd = cgi.stdinFd;
       state->stdoutFd = cgi.stdoutFd;
       state->connectionFd = connectionFD;
-      state->inputData = cgi.inputData;
+      state->inputData.swap(cgi.inputData); // Move data without copying
       state->inputWritten = cgi.inputWritten;
-      state->outputData = cgi.outputData;
+      state->outputData.swap(cgi.outputData); // Move data without copying
       state->stdinClosed = cgi.stdinClosed;
       state->stdoutClosed = false;
 
@@ -249,7 +264,8 @@ void Webserv::receiveConnectionRequest(nfds_t &pos)
       }
 
       // Don't change connection to POLLOUT yet - wait for CGI to complete
-      _pollFD[pos].events = 0; // Remove from poll temporarily
+      // Keep POLLIN to detect client disconnection during CGI processing
+      _pollFD[pos].events = POLLIN;
     }
     else
     {
@@ -270,9 +286,6 @@ void Webserv::sendServerResponse(nfds_t &pos)
   }
   else if (sendStatus == 0)
   {
-    // Debug output commented for production
-    // std::cerr << "Response: " << conn->getResponse();
-
     // Check if client requested Connection: close
     if (!conn->shouldKeepAlive())
     {
@@ -283,10 +296,11 @@ void Webserv::sendServerResponse(nfds_t &pos)
     _pollFD[pos].events = POLLIN;
     conn->resetRequestResponse();
   }
-
-  //   DEBUG_VAR("Error: send() returned 0", _pollFD[pos].fd);
-  //   deleteConnection(pos);
 }
+
+// ============================================================================
+// Poll FD Management
+// ============================================================================
 
 void Webserv::addPollFD(int fd, tPollFDType fdType)
 {
@@ -309,7 +323,6 @@ void Webserv::deletePollFD(nfds_t &pos)
     --pos;
 }
 
-// Version that doesn't close the fd (for when fd was already closed)
 void Webserv::removePollFD(nfds_t &pos)
 {
   _pollFD.erase(_pollFD.begin() + pos);
@@ -333,7 +346,11 @@ void Webserv::deletePollFD(int fd)
   --_nPollFD;
 }
 
-int Webserv::addServer(struct conf c)
+// ============================================================================
+// Server Management
+// ============================================================================
+
+int Webserv::addServer(const ServerConf &c)
 {
   Server *server = new Server();
   int fd = server->setupServer(c.name, c.port);
@@ -374,7 +391,7 @@ void Webserv::deleteServer(int fd)
 void Webserv::restartServer(nfds_t &pos)
 {
   int fd = _pollFD[pos].fd;
-  struct conf c;
+  ServerConf c;
   c.name = _server[fd]->getName();
   c.port = _server[fd]->getPort();
 
@@ -389,6 +406,10 @@ void Webserv::restartServer(nfds_t &pos)
               << " was restarted successfully" << std::endl;
   }
 }
+
+// ============================================================================
+// Connection Management
+// ============================================================================
 
 int Webserv::addConnection(int serverFD)
 {
@@ -420,9 +441,6 @@ int Webserv::addConnection(int serverFD)
   addPollFD(connectionFD, CONNECTION);
   ++_nConnection;
 
-  // Debug output commented for production
-  // std::cerr << "Connection accepted on port " << connection->getPort() << '\n';
-  // printPoll(_nPollFD, _pollFD, _pollFDType);
   return 0;
 }
 
@@ -430,16 +448,6 @@ void Webserv::deleteConnection(nfds_t &pos)
 {
   int connectionFD = _pollFD[pos].fd;
   int serverFD = _connection[connectionFD]->getServerFD();
-
-  // std::cerr << "Connection with socket " << connectionFD << " on port " << _connection[connectionFD]->getPort()
-  //           << " deleted because";
-  // if (_pollFD[pos].revents & POLLERR)
-  //   std::cerr << " POLL_ERR";
-  // if (_pollFD[pos].revents & POLLHUP)
-  //   std::cerr << " POLL_HUP";
-  // if (_pollFD[pos].revents & POLLNVAL)
-  //   std::cerr << " POLLNVAL";
-  // std::cerr << std::endl;
 
   // Clean up any pending CGI for this connection
   std::map<int, CgiState *>::iterator cgiIt = _cgiByConnection.find(connectionFD);
@@ -456,10 +464,18 @@ void Webserv::deleteConnection(nfds_t &pos)
   _server[serverFD]->deleteConnection(connectionFD);
 }
 
+// ============================================================================
+// Getters
+// ============================================================================
+
 const Config &Webserv::getConfig() const
 {
   return _config;
 }
+
+// ============================================================================
+// Signal Handler
+// ============================================================================
 
 void signalHandler(int signal)
 {
@@ -472,167 +488,8 @@ void signalHandler(int signal)
 }
 
 // ============================================================================
-// CGI Pipe Handlers
+// Mandatory Class Members (Orthodox Canonical Form)
 // ============================================================================
-
-void Webserv::handleCgiStdin(nfds_t &pos)
-{
-  int fd = _pollFD[pos].fd;
-  std::map<int, CgiState *>::iterator it = _cgiByPipe.find(fd);
-  if (it == _cgiByPipe.end())
-    return;
-
-  CgiState *state = it->second;
-
-  // Write data to CGI stdin
-  size_t remaining = state->inputData.size() - state->inputWritten;
-  if (remaining > 0)
-  {
-    size_t toWrite = remaining > 65536 ? 65536 : remaining;
-    ssize_t n = write(fd, &state->inputData[state->inputWritten], toWrite);
-    if (n > 0)
-      state->inputWritten += n;
-    // If n <= 0, just wait for next poll - don't close the pipe
-    // (poll() guarantees readiness, so -1 likely means pipe full)
-  }
-
-  // Check if all data written
-  if (state->inputWritten >= state->inputData.size())
-  {
-    close(fd);
-    state->stdinFd = -1;
-    state->stdinClosed = true;
-    _cgiByPipe.erase(fd);
-    removePollFD(pos);
-  }
-}
-
-void Webserv::handleCgiStdout(nfds_t &pos)
-{
-  int fd = _pollFD[pos].fd;
-  std::map<int, CgiState *>::iterator it = _cgiByPipe.find(fd);
-  if (it == _cgiByPipe.end())
-    return;
-
-  CgiState *state = it->second;
-
-  // Read data from CGI stdout
-  char buffer[65536];
-  ssize_t n = read(fd, buffer, sizeof(buffer));
-  if (n > 0)
-  {
-    state->outputData.append(buffer, n);
-  }
-  else if (n == 0) // EOF - CGI finished
-  {
-    state->stdoutClosed = true;
-    close(fd);
-    state->stdoutFd = -1;
-    _cgiByPipe.erase(fd);
-    removePollFD(pos);
-
-    // Check if CGI is complete (both pipes closed)
-    if (state->stdinClosed || state->stdinFd < 0)
-    {
-      finishCgi(state);
-    }
-  }
-  // If n < 0, just wait for next poll - don't close the pipe
-}
-
-void Webserv::finishCgi(CgiState *state)
-{
-  // Wait for child process
-  if (state->pid > 0)
-  {
-    int status;
-    waitpid(state->pid, &status, WNOHANG);
-    state->pid = -1;
-  }
-
-  // Get connection and response
-  int connFd = state->connectionFd;
-  std::map<int, Connection *>::iterator connIt = _connection.find(connFd);
-  if (connIt == _connection.end())
-  {
-    cleanupCgi(state);
-    return;
-  }
-
-  Connection *conn = connIt->second;
-  Response *resp = conn->getResponsePtr();
-
-  // Copy output to response's CGI info and finalize
-  resp->getCgiInfo().outputData = state->outputData;
-  resp->finalizeCgiResponse();
-
-  // Re-enable connection for sending response
-  for (nfds_t i = 0; i < _nPollFD; ++i)
-  {
-    if (_pollFD[i].fd == connFd)
-    {
-      _pollFD[i].events = POLLOUT;
-      break;
-    }
-  }
-
-  cleanupCgi(state);
-}
-
-void Webserv::cleanupCgi(CgiState *state)
-{
-  // Close any remaining pipes (only if not already closed)
-  if (state->stdinFd >= 0)
-  {
-    // Remove from poll if still there
-    for (nfds_t i = 0; i < _nPollFD; ++i)
-    {
-      if (_pollFD[i].fd == state->stdinFd)
-      {
-        close(_pollFD[i].fd);
-        _pollFD.erase(_pollFD.begin() + i);
-        _pollFDType.erase(_pollFDType.begin() + i);
-        --_nPollFD;
-        break;
-      }
-    }
-    _cgiByPipe.erase(state->stdinFd);
-    state->stdinFd = -1;
-  }
-  if (state->stdoutFd >= 0)
-  {
-    // Remove from poll if still there
-    for (nfds_t i = 0; i < _nPollFD; ++i)
-    {
-      if (_pollFD[i].fd == state->stdoutFd)
-      {
-        close(_pollFD[i].fd);
-        _pollFD.erase(_pollFD.begin() + i);
-        _pollFDType.erase(_pollFDType.begin() + i);
-        --_nPollFD;
-        break;
-      }
-    }
-    _cgiByPipe.erase(state->stdoutFd);
-    state->stdoutFd = -1;
-  }
-
-  // Kill process if still running
-  if (state->pid > 0)
-  {
-    kill(state->pid, SIGKILL);
-    waitpid(state->pid, NULL, 0);
-  }
-
-  // Remove from maps
-  _cgiByConnection.erase(state->connectionFd);
-
-  delete state;
-}
-
-//////////////////////////
-// MANDATORY MEMBER CLASS//
-//////////////////////////
 
 Webserv::Webserv(const Webserv &other)
 {

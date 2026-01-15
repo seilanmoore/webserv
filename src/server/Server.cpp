@@ -6,7 +6,7 @@
 /*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/08 14:07:21 by smoore-a          #+#    #+#             */
-/*   Updated: 2026/01/10 21:11:02 by smoore-a         ###   ########.fr       */
+/*   Updated: 2026/01/14 19:47:54 by smoore-a         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -126,16 +126,6 @@ const std::map<int, Connection *> &Server::getConnection() const
 nfds_t Server::getNConnection() const
 {
   return _nConnection;
-}
-
-void Server::setFD(int fd)
-{
-  _fd = fd;
-}
-
-void Server::setAddress(const t_sockaddr_in &address)
-{
-  _address = address;
 }
 
 void Server::setConnection(int fd, Connection *connection)

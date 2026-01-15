@@ -150,11 +150,6 @@ int Connection::getServerFD() const
   return _serverFD;
 }
 
-const std::string &Connection::getResponse() const
-{
-  return _response->getResponse();
-}
-
 bool Connection::shouldKeepAlive() const
 {
   if (_request == NULL)
