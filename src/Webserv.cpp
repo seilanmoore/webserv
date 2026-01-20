@@ -99,7 +99,14 @@ void Webserv::initServer()
   for (size_t i = 0; i < servers.size(); ++i)
   {
     ServerConf c;
-    c.name = servers[i].serverName.empty() ? "server" + static_cast<std::ostringstream &>(std::ostringstream() << i).str() : servers[i].serverName;
+    if (servers[i].serverName.empty())
+    {
+      std::ostringstream ss;
+      ss << i;
+      c.name = "server" + ss.str();
+    }
+    else
+      c.name = servers[i].serverName;
     c.port = servers[i].port;
     int fd = addServer(c);
     if (fd != -1)
