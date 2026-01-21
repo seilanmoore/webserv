@@ -56,6 +56,6 @@ static const size_t CGI_BUFFER_SIZE = 65536;
 
 // CGI timeout in poll cycles (with 5000ms poll timeout, ~1 cycle = 5 seconds max)
 // Set to 2 cycles for ~10 seconds timeout
-static const int CGI_TIMEOUT_CYCLES = 2;
+static const int CGI_TIMEOUT_CYCLES = 500;
 
 #endif
