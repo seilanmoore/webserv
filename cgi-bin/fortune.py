@@ -48,7 +48,7 @@ body = f"""
         <form method='get' style='display:inline;'>
             <button type='submit'>Reload</button>
         </form>
-        <form action='/docs/html/index.html' method='get' style='display:inline;'>
+        <form action='/index.html' method='get' style='display:inline;'>
             <button type='submit'>Back to Home</button>
         </form>
     </div>
