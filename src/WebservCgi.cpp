@@ -16,9 +16,11 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <csignal>
+#include <sstream>
 
 #include "Connection.hpp"
 #include "Response.hpp"
+#include "Constants.hpp"
 
 // ============================================================================
 // CGI Pipe Handlers
@@ -234,4 +236,82 @@ void Webserv::cleanupCgi(CgiState *state)
   _cgiByConnection.erase(state->connectionFd);
 
   delete state;
+}
+// ============================================================================
+// CGI Timeout Handling
+// ============================================================================
+
+void Webserv::checkCgiTimeouts()
+{
+  if (_cgiByConnection.empty())
+    return;
+
+  std::vector<CgiState *> timedOut;
+
+  // Increment poll cycles and collect timed out CGIs
+  for (std::map<int, CgiState *>::iterator it = _cgiByConnection.begin();
+       it != _cgiByConnection.end(); ++it)
+  {
+    CgiState *cgi = it->second;
+    if (cgi && cgi->active)
+    {
+      cgi->pollCycles++;
+      if (cgi->pollCycles >= CGI_TIMEOUT_CYCLES)
+      {
+        timedOut.push_back(cgi);
+      }
+    }
+  }
+
+  // Handle timed out CGIs
+  for (size_t i = 0; i < timedOut.size(); ++i)
+  {
+    timeoutCgi(timedOut[i]);
+  }
+}
+
+void Webserv::timeoutCgi(CgiState *state)
+{
+  if (!state)
+    return;
+
+  // Kill the CGI process
+  if (state->pid > 0)
+  {
+    kill(state->pid, SIGKILL);
+    waitpid(state->pid, NULL, 0);
+    state->pid = -1;
+  }
+
+  // Get connection and response to send 504 error
+  int connFd = state->connectionFd;
+  std::map<int, Connection *>::iterator connIt = _connection.find(connFd);
+  if (connIt != _connection.end())
+  {
+    Connection *conn = connIt->second;
+    Response *resp = conn->getResponsePtr();
+
+    // Set 504 Gateway Timeout response
+    std::string body = "<html><body><h1>504 Gateway Timeout - CGI script timed out</h1></body></html>";
+    std::ostringstream oss;
+    oss << body.length();
+    std::string response = "HTTP/1.1 504 Gateway Timeout\r\nContent-Type: text/html\r\nContent-Length: " + oss.str() + "\r\n\r\n" + body;
+    resp->setRawResponse(response);
+
+    // Mark CGI as inactive
+    resp->getCgiInfo().active = false;
+
+    // Re-enable connection for sending response
+    for (nfds_t i = 0; i < _nPollFD; ++i)
+    {
+      if (_pollFD[i].fd == connFd)
+      {
+        _pollFD[i].events = POLLOUT;
+        break;
+      }
+    }
+  }
+
+  // Cleanup the CGI state
+  cleanupCgi(state);
 }

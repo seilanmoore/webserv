@@ -378,6 +378,11 @@ const std::vector<char> &Request::getBody() const
     return _body;
 }
 
+std::vector<char> &Request::getBodyMutable()
+{
+    return _body;
+}
+
 const std::string &Request::getFileExtension() const
 {
     return _fileExtension;

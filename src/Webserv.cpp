@@ -138,7 +138,8 @@ void Webserv::loop()
 
     if (pollRet == 0)
     {
-      // Timeout occurred, no events - continue polling
+      // Timeout occurred, no events - check for CGI timeouts
+      checkCgiTimeouts();
       continue;
     }
 
@@ -241,6 +242,8 @@ void Webserv::receiveConnectionRequest(nfds_t &pos)
       state->outputData.swap(cgi.outputData); // Move data without copying
       state->stdinClosed = cgi.stdinClosed;
       state->stdoutClosed = false;
+      state->active = true;
+      state->pollCycles = 0;
 
       _cgiByConnection[connectionFD] = state;
 

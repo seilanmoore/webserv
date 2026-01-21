@@ -26,7 +26,7 @@
 // CGI Handler (now non-blocking - starts CGI and returns immediately)
 // ============================================================================
 
-void Response::handleCgi(const Request &request, const std::string &scriptPath,
+void Response::handleCgi(Request &request, const std::string &scriptPath,
                          const std::string &interpreter)
 {
   // Start CGI process - returns immediately, CGI runs asynchronously
@@ -38,7 +38,7 @@ void Response::handleCgi(const Request &request, const std::string &scriptPath,
 // Non-blocking CGI functions
 // ============================================================================
 
-bool Response::startCgi(const Request &request, const std::string &scriptPath,
+bool Response::startCgi(Request &request, const std::string &scriptPath,
                         const std::string &interpreter)
 {
   // Create pipes: one for stdin (to send body), one for stdout (to receive response)
@@ -162,11 +162,13 @@ bool Response::startCgi(const Request &request, const std::string &scriptPath,
   _cgiState.pid = pid;
   _cgiState.stdinFd = pipeIn[1];
   _cgiState.stdoutFd = pipeOut[0];
-  _cgiState.inputData = request.getBody();
+  // Use swap to move body data without copying (critical for large bodies)
+  _cgiState.inputData.swap(request.getBodyMutable());
   _cgiState.inputWritten = 0;
   _cgiState.outputData.clear();
   _cgiState.stdinClosed = false;
   _cgiState.active = true;
+  _cgiState.pollCycles = 0;
 
   // If no body to write, close stdin immediately
   if (_cgiState.inputData.empty())

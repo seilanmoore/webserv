@@ -73,7 +73,7 @@ Response::~Response()
 // Main Response Generation
 // ============================================================================
 
-void Response::generateResponse(const Request &request, const ServerConfig &server)
+void Response::generateResponse(Request &request, const ServerConfig &server)
 {
   const std::string &method = request.getMethod();
   const std::string &uri = request.getPath();
@@ -127,7 +127,7 @@ void Response::generateResponse(const Request &request, const ServerConfig &serv
 // HTTP Method Handlers
 // ============================================================================
 
-void Response::handleGet(const Request &request, const ServerConfig &server,
+void Response::handleGet(Request &request, const ServerConfig &server,
                          const LocationConfig *location)
 {
   std::string uri = request.getPath();
@@ -151,11 +151,23 @@ void Response::handleGet(const Request &request, const ServerConfig &server,
     return;
   }
 
+  // Check for CGI
+  if (location && location->cgiEnable)
+  {
+    std::string ext = request.getFileExtension();
+    std::map<std::string, std::string>::const_iterator it = location->cgiPass.find(ext);
+    if (it != location->cgiPass.end())
+    {
+      handleCgi(request, fullPath, it->second);
+      return;
+    }
+  }
+
   // Serve file
   serveFile(fullPath);
 }
 
-void Response::handlePost(const Request &request, const ServerConfig &server,
+void Response::handlePost(Request &request, const ServerConfig &server,
                           const LocationConfig *location)
 {
   std::string uri = request.getPath();
