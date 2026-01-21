@@ -56,6 +56,7 @@ public:
     const std::string &getHost() const;
     size_t getContentLength() const;
     const std::vector<char> &getBody() const;
+    std::vector<char> &getBodyMutable(); // For efficient move/swap operations
     const std::string &getFileExtension() const;
     bool getIsBinary() const;
     bool isChunked() const;

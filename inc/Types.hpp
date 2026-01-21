@@ -35,6 +35,7 @@ struct CgiState
   bool stdinClosed;            // stdin pipe closed?
   bool stdoutClosed;           // stdout pipe closed (EOF)?
   bool active;                 // Is CGI currently active?
+  int pollCycles;              // Poll cycles since CGI started (for timeout)
 
   CgiState()
       : pid(-1),
@@ -46,7 +47,8 @@ struct CgiState
         outputData(),
         stdinClosed(false),
         stdoutClosed(false),
-        active(false)
+        active(false),
+        pollCycles(0)
   {
   }
 };

@@ -32,12 +32,15 @@ public:
   Response &operator=(const Response &other);
   ~Response();
 
-  void generateResponse(const Request &request, const ServerConfig &serverConfig);
+  void generateResponse(Request &request, const ServerConfig &serverConfig);
 
   ssize_t sendResponse(int fd);
 
   // Non-blocking CGI methods (public for Webserv access)
   void finalizeCgiResponse();
+
+  // Set raw response (for timeouts, errors)
+  void setRawResponse(const std::string &response) { _response = response; }
 
   // CGI state accessors
   bool hasPendingCgi() const { return _cgiState.active; }
@@ -76,9 +79,9 @@ private:
   CgiState _cgiState;
 
   // Private methods
-  void handleGet(const Request &request, const ServerConfig &server,
+  void handleGet(Request &request, const ServerConfig &server,
                  const LocationConfig *location);
-  void handlePost(const Request &request, const ServerConfig &server,
+  void handlePost(Request &request, const ServerConfig &server,
                   const LocationConfig *location);
   void handleDelete(const Request &request, const ServerConfig &server,
                     const LocationConfig *location);
@@ -89,11 +92,11 @@ private:
   void generateDirectoryListing(const std::string &dirPath, const std::string &uri);
   void generateErrorPage(int code, const ServerConfig &server);
   void handleRedirect(int code, const std::string &url);
-  void handleCgi(const Request &request, const std::string &scriptPath,
+  void handleCgi(Request &request, const std::string &scriptPath,
                  const std::string &interpreter);
 
   // Non-blocking CGI methods (private helpers)
-  bool startCgi(const Request &request, const std::string &scriptPath,
+  bool startCgi(Request &request, const std::string &scriptPath,
                 const std::string &interpreter);
 };
 

@@ -76,6 +76,8 @@ private:
   void handleCgiStdout(nfds_t &pos);
   void finishCgi(CgiState *cgi);
   void cleanupCgi(CgiState *cgi);
+  void checkCgiTimeouts();
+  void timeoutCgi(CgiState *cgi);
 
   Webserv(const Webserv &other);
   Webserv &operator=(const Webserv &other);
