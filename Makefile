@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+         #
+#    By: smoore-a <smoore-a@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/09/08 14:07:03 by smoore-a          #+#    #+#              #
-#    Updated: 2026/01/14 19:02:17 by smoore-a         ###   ########.fr        #
+#    Updated: 2026/01/22 16:28:22 by smoore-a         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -38,7 +38,8 @@ OBJ_FILE = $(SRCS:$(SRC_DIR)%.cpp=$(OBJ_DIR)/%.o)
 
 SRC_FILE = main.cpp \
 	Webserv.cpp \
-	WebservCgi.cpp
+	WebservCgi.cpp \
+	Types.cpp
 
 UTIL_FILE = utils.cpp
 
