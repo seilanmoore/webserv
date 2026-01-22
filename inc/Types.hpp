@@ -37,20 +37,7 @@ struct CgiState
   bool active;                 // Is CGI currently active?
   int pollCycles;              // Poll cycles since CGI started (for timeout)
 
-  CgiState()
-      : pid(-1),
-        stdinFd(-1),
-        stdoutFd(-1),
-        connectionFd(-1),
-        inputData(),
-        inputWritten(0),
-        outputData(),
-        stdinClosed(false),
-        stdoutClosed(false),
-        active(false),
-        pollCycles(0)
-  {
-  }
+  CgiState();
 };
 
 // ============================================================================
