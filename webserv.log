@@ -1,8 +1,0 @@
-nohup: ignoring input
-Configuration loaded: 1 server(s)
-Server server0 created
-Server server0 with fd 3 listening on port 8080
-Webserv closed by SIGTERM signal
-POLL FD
--------
-Server: 3
