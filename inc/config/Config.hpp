@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Config.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
+/*   By: smoore-a <smoore-a@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/10 13:45:07 by smoore-a          #+#    #+#             */
-/*   Updated: 2026/01/10 19:31:52 by smoore-a         ###   ########.fr       */
+/*   Updated: 2026/01/23 16:40:10 by smoore-a         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -103,10 +103,40 @@ private:
   void parseLocationDirective(const std::vector<std::string> &tokens, size_t &pos,
                               LocationConfig &location);
 
+  typedef void (Config::*DirectiveHandler)(
+      const std::vector<std::string> &,
+      size_t &,
+      ServerConfig &) const;
+  std::map<std::string, DirectiveHandler> _directiveTable;
+
+  void _handleListen(const std::vector<std::string> &tokens, size_t &pos, ServerConfig &server) const;
+  void _handleServerName(const std::vector<std::string> &tokens, size_t &pos, ServerConfig &server) const;
+  void _handleRoot(const std::vector<std::string> &tokens, size_t &pos, ServerConfig &server) const;
+  void _handleIndex(const std::vector<std::string> &tokens, size_t &pos, ServerConfig &server) const;
+  void _handleMaxBodySize(const std::vector<std::string> &tokens, size_t &pos, ServerConfig &server) const;
+  void _handleErrorPage(const std::vector<std::string> &tokens, size_t &pos, ServerConfig &server) const;
+
+  typedef void (Config::*LocationDirectiveHandler)(
+      const std::vector<std::string> &,
+      size_t &,
+      LocationConfig &) const;
+  std::map<std::string, LocationDirectiveHandler> _locationDirectiveTable;
+
+  void _handleRoot(const std::vector<std::string> &tokens, size_t &pos, LocationConfig &location) const;
+  void _handleIndex(const std::vector<std::string> &tokens, size_t &pos, LocationConfig &location) const;
+  void _handleLimitExcept(const std::vector<std::string> &tokens, size_t &pos, LocationConfig &location) const;
+  void _handleAutoIndex(const std::vector<std::string> &tokens, size_t &pos, LocationConfig &location) const;
+  void _handleUploadEnable(const std::vector<std::string> &tokens, size_t &pos, LocationConfig &location) const;
+  void _handleUploadStore(const std::vector<std::string> &tokens, size_t &pos, LocationConfig &location) const;
+  void _handleCgiEnable(const std::vector<std::string> &tokens, size_t &pos, LocationConfig &location) const;
+  void _handleCgiPass(const std::vector<std::string> &tokens, size_t &pos, LocationConfig &location) const;
+  void _handleMaxBodySize(const std::vector<std::string> &tokens, size_t &pos, LocationConfig &location) const;
+  void _handleReturn(const std::vector<std::string> &tokens, size_t &pos, LocationConfig &location) const;
+
   // Utility functions
   std::string trim(const std::string &str);
   bool isNumber(const std::string &str);
-  size_t parseSize(const std::string &str);
+  size_t parseSize(const std::string &str) const;
 };
 
 #endif

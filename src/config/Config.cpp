@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Config.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
+/*   By: smoore-a <smoore-a@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/10 13:44:26 by smoore-a          #+#    #+#             */
-/*   Updated: 2026/01/10 19:31:52 by smoore-a         ###   ########.fr       */
+/*   Updated: 2026/01/23 16:52:11 by smoore-a         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -90,6 +90,23 @@ Config::Config()
     : _servers(),
       _rawContent()
 {
+  _directiveTable["listen"] = &Config::_handleListen;
+  _directiveTable["server_name"] = &Config::_handleServerName;
+  _directiveTable["root"] = &Config::_handleRoot;
+  _directiveTable["index"] = &Config::_handleIndex;
+  _directiveTable["client_max_body_size"] = &Config::_handleMaxBodySize;
+  _directiveTable["error_page"] = &Config::_handleErrorPage;
+
+  _locationDirectiveTable["root"] = &Config::_handleRoot;
+  _locationDirectiveTable["index"] = &Config::_handleIndex;
+  _locationDirectiveTable["limit_except"] = &Config::_handleLimitExcept;
+  _locationDirectiveTable["autoindex"] = &Config::_handleAutoIndex;
+  _locationDirectiveTable["upload_enable"] = &Config::_handleUploadEnable;
+  _locationDirectiveTable["upload_store"] = &Config::_handleUploadStore;
+  _locationDirectiveTable["cgi_enable"] = &Config::_handleCgiEnable;
+  _locationDirectiveTable["cgi_pass"] = &Config::_handleCgiPass;
+  _locationDirectiveTable["client_max_body_size"] = &Config::_handleMaxBodySize;
+  _locationDirectiveTable["return"] = &Config::_handleReturn;
 }
 
 Config::Config(const std::string &filename)
@@ -309,88 +326,189 @@ void Config::parseDirective(const std::vector<std::string> &tokens, size_t &pos,
   std::string directive = tokens[pos];
   ++pos;
 
-  if (directive == "listen")
-  {
-    if (pos >= tokens.size())
-      throw std::runtime_error("Config: Expected value after 'listen'");
+  std::map<std::string, DirectiveHandler>::iterator it = _directiveTable.find(directive);
 
-    std::string value = tokens[pos];
-    ++pos;
-
-    // Parse host:port or just port
-    size_t colonPos = value.find(':');
-    if (colonPos != std::string::npos)
-    {
-      server.host = value.substr(0, colonPos);
-      server.port = static_cast<uint16_t>(std::atoi(value.substr(colonPos + 1).c_str()));
-    }
-    else
-    {
-      server.port = static_cast<uint16_t>(std::atoi(value.c_str()));
-    }
-
-    // Skip semicolon
-    if (pos < tokens.size() && tokens[pos] == ";")
-      ++pos;
-  }
-  else if (directive == "server_name")
+  if (it != _directiveTable.end())
   {
-    if (pos >= tokens.size())
-      throw std::runtime_error("Config: Expected value after 'server_name'");
-    server.serverName = tokens[pos];
-    ++pos;
-    if (pos < tokens.size() && tokens[pos] == ";")
-      ++pos;
-  }
-  else if (directive == "root")
-  {
-    if (pos >= tokens.size())
-      throw std::runtime_error("Config: Expected value after 'root'");
-    server.root = tokens[pos];
-    ++pos;
-    if (pos < tokens.size() && tokens[pos] == ";")
-      ++pos;
-  }
-  else if (directive == "index")
-  {
-    server.index.clear();
-    while (pos < tokens.size() && tokens[pos] != ";" && tokens[pos] != "}")
-    {
-      server.index.push_back(tokens[pos]);
-      ++pos;
-    }
-    if (pos < tokens.size() && tokens[pos] == ";")
-      ++pos;
-  }
-  else if (directive == "client_max_body_size")
-  {
-    if (pos >= tokens.size())
-      throw std::runtime_error("Config: Expected value after 'client_max_body_size'");
-    server.clientMaxBodySize = parseSize(tokens[pos]);
-    ++pos;
-    if (pos < tokens.size() && tokens[pos] == ";")
-      ++pos;
-  }
-  else if (directive == "error_page")
-  {
-    if (pos + 1 >= tokens.size())
-      throw std::runtime_error("Config: Expected code and path after 'error_page'");
-    int code = std::atoi(tokens[pos].c_str());
-    ++pos;
-    std::string path = tokens[pos];
-    ++pos;
-    server.errorPages[code] = path;
-    if (pos < tokens.size() && tokens[pos] == ";")
-      ++pos;
+    DirectiveHandler handler = it->second;
+    (this->*handler)(tokens, pos, server);
   }
   else
   {
-    // Skip unknown directive until semicolon
     while (pos < tokens.size() && tokens[pos] != ";" && tokens[pos] != "}")
       ++pos;
     if (pos < tokens.size() && tokens[pos] == ";")
       ++pos;
   }
+
+  ////////////////////////////////////////////////
+
+  // if (directive == "listen")
+  // {
+  //   if (pos >= tokens.size())
+  //     throw std::runtime_error("Config: Expected value after 'listen'");
+
+  //   std::string value = tokens[pos];
+  //   ++pos;
+
+  //   // Parse host:port or just port
+  //   size_t colonPos = value.find(':');
+  //   if (colonPos != std::string::npos)
+  //   {
+  //     server.host = value.substr(0, colonPos);
+  //     server.port = static_cast<uint16_t>(std::atoi(value.substr(colonPos + 1).c_str()));
+  //   }
+  //   else
+  //   {
+  //     server.port = static_cast<uint16_t>(std::atoi(value.c_str()));
+  //   }
+
+  //   // Skip semicolon
+  //   if (pos < tokens.size() && tokens[pos] == ";")
+  //     ++pos;
+  // }
+  // else if (directive == "server_name")
+  // {
+  //   if (pos >= tokens.size())
+  //     throw std::runtime_error("Config: Expected value after 'server_name'");
+  //   server.serverName = tokens[pos];
+  //   ++pos;
+  //   if (pos < tokens.size() && tokens[pos] == ";")
+  //     ++pos;
+  // }
+  // else if (directive == "root")
+  // {
+  //   if (pos >= tokens.size())
+  //     throw std::runtime_error("Config: Expected value after 'root'");
+  //   server.root = tokens[pos];
+  //   ++pos;
+  //   if (pos < tokens.size() && tokens[pos] == ";")
+  //     ++pos;
+  // }
+  // else if (directive == "index")
+  // {
+  //   server.index.clear();
+  //   while (pos < tokens.size() && tokens[pos] != ";" && tokens[pos] != "}")
+  //   {
+  //     server.index.push_back(tokens[pos]);
+  //     ++pos;
+  //   }
+  //   if (pos < tokens.size() && tokens[pos] == ";")
+  //     ++pos;
+  // }
+  // else if (directive == "client_max_body_size")
+  // {
+  //   if (pos >= tokens.size())
+  //     throw std::runtime_error("Config: Expected value after 'client_max_body_size'");
+  //   server.clientMaxBodySize = parseSize(tokens[pos]);
+  //   ++pos;
+  //   if (pos < tokens.size() && tokens[pos] == ";")
+  //     ++pos;
+  // }
+  // else if (directive == "error_page")
+  // {
+  //   if (pos + 1 >= tokens.size())
+  //     throw std::runtime_error("Config: Expected code and path after 'error_page'");
+  //   int code = std::atoi(tokens[pos].c_str());
+  //   ++pos;
+  //   std::string path = tokens[pos];
+  //   ++pos;
+  //   server.errorPages[code] = path;
+  //   if (pos < tokens.size() && tokens[pos] == ";")
+  //     ++pos;
+  // }
+  // else
+  // {
+  //   // Skip unknown directive until semicolon
+  //   while (pos < tokens.size() && tokens[pos] != ";" && tokens[pos] != "}")
+  //     ++pos;
+  //   if (pos < tokens.size() && tokens[pos] == ";")
+  //     ++pos;
+  // }
+}
+
+// ============================================================================
+// DirectiveHandlers
+// ============================================================================
+
+void Config::_handleListen(const std::vector<std::string> &tokens, size_t &pos, ServerConfig &server) const
+{
+  if (pos >= tokens.size())
+    throw std::runtime_error("Config: Expected value after 'listen'");
+
+  std::string value = tokens[pos];
+  ++pos;
+
+  // Parse host:port or just port
+  size_t colonPos = value.find(':');
+  if (colonPos != std::string::npos)
+  {
+    server.host = value.substr(0, colonPos);
+    server.port = static_cast<uint16_t>(std::atoi(value.substr(colonPos + 1).c_str()));
+  }
+  else
+  {
+    server.port = static_cast<uint16_t>(std::atoi(value.c_str()));
+  }
+
+  // Skip semicolon
+  if (pos < tokens.size() && tokens[pos] == ";")
+    ++pos;
+}
+
+void Config::_handleServerName(const std::vector<std::string> &tokens, size_t &pos, ServerConfig &server) const
+{
+  if (pos >= tokens.size())
+    throw std::runtime_error("Config: Expected value after 'server_name'");
+  server.serverName = tokens[pos];
+  ++pos;
+  if (pos < tokens.size() && tokens[pos] == ";")
+    ++pos;
+}
+
+void Config::_handleRoot(const std::vector<std::string> &tokens, size_t &pos, ServerConfig &server) const
+{
+  if (pos >= tokens.size())
+    throw std::runtime_error("Config: Expected value after 'root'");
+  server.root = tokens[pos];
+  ++pos;
+  if (pos < tokens.size() && tokens[pos] == ";")
+    ++pos;
+}
+
+void Config::_handleIndex(const std::vector<std::string> &tokens, size_t &pos, ServerConfig &server) const
+{
+  server.index.clear();
+  while (pos < tokens.size() && tokens[pos] != ";" && tokens[pos] != "}")
+  {
+    server.index.push_back(tokens[pos]);
+    ++pos;
+  }
+  if (pos < tokens.size() && tokens[pos] == ";")
+    ++pos;
+}
+
+void Config::_handleMaxBodySize(const std::vector<std::string> &tokens, size_t &pos, ServerConfig &server) const
+{
+  if (pos >= tokens.size())
+    throw std::runtime_error("Config: Expected value after 'client_max_body_size'");
+  server.clientMaxBodySize = parseSize(tokens[pos]);
+  ++pos;
+  if (pos < tokens.size() && tokens[pos] == ";")
+    ++pos;
+}
+
+void Config::_handleErrorPage(const std::vector<std::string> &tokens, size_t &pos, ServerConfig &server) const
+{
+  if (pos + 1 >= tokens.size())
+    throw std::runtime_error("Config: Expected code and path after 'error_page'");
+  int code = std::atoi(tokens[pos].c_str());
+  ++pos;
+  std::string path = tokens[pos];
+  ++pos;
+  server.errorPages[code] = path;
+  if (pos < tokens.size() && tokens[pos] == ";")
+    ++pos;
 }
 
 void Config::parseLocationDirective(const std::vector<std::string> &tokens, size_t &pos,
@@ -399,104 +517,12 @@ void Config::parseLocationDirective(const std::vector<std::string> &tokens, size
   std::string directive = tokens[pos];
   ++pos;
 
-  if (directive == "root")
+  std::map<std::string, LocationDirectiveHandler>::iterator it = _locationDirectiveTable.find(directive);
+
+  if (it != _locationDirectiveTable.end())
   {
-    if (pos >= tokens.size())
-      throw std::runtime_error("Config: Expected value after 'root'");
-    location.root = tokens[pos];
-    ++pos;
-    if (pos < tokens.size() && tokens[pos] == ";")
-      ++pos;
-  }
-  else if (directive == "index")
-  {
-    location.index.clear();
-    while (pos < tokens.size() && tokens[pos] != ";" && tokens[pos] != "}")
-    {
-      location.index.push_back(tokens[pos]);
-      ++pos;
-    }
-    if (pos < tokens.size() && tokens[pos] == ";")
-      ++pos;
-  }
-  else if (directive == "limit_except")
-  {
-    location.allowedMethods.clear();
-    while (pos < tokens.size() && tokens[pos] != ";" && tokens[pos] != "}")
-    {
-      location.allowedMethods.insert(tokens[pos]);
-      ++pos;
-    }
-    if (pos < tokens.size() && tokens[pos] == ";")
-      ++pos;
-  }
-  else if (directive == "autoindex")
-  {
-    if (pos >= tokens.size())
-      throw std::runtime_error("Config: Expected value after 'autoindex'");
-    location.autoindex = (tokens[pos] == "on");
-    ++pos;
-    if (pos < tokens.size() && tokens[pos] == ";")
-      ++pos;
-  }
-  else if (directive == "upload_enable")
-  {
-    if (pos >= tokens.size())
-      throw std::runtime_error("Config: Expected value after 'upload_enable'");
-    location.uploadEnable = (tokens[pos] == "on");
-    ++pos;
-    if (pos < tokens.size() && tokens[pos] == ";")
-      ++pos;
-  }
-  else if (directive == "upload_store")
-  {
-    if (pos >= tokens.size())
-      throw std::runtime_error("Config: Expected value after 'upload_store'");
-    location.uploadStore = tokens[pos];
-    ++pos;
-    if (pos < tokens.size() && tokens[pos] == ";")
-      ++pos;
-  }
-  else if (directive == "cgi_enable")
-  {
-    if (pos >= tokens.size())
-      throw std::runtime_error("Config: Expected value after 'cgi_enable'");
-    location.cgiEnable = (tokens[pos] == "on");
-    ++pos;
-    if (pos < tokens.size() && tokens[pos] == ";")
-      ++pos;
-  }
-  else if (directive == "cgi_pass")
-  {
-    if (pos + 1 >= tokens.size())
-      throw std::runtime_error("Config: Expected extension and interpreter after 'cgi_pass'");
-    std::string extension = tokens[pos];
-    ++pos;
-    std::string interpreter = tokens[pos];
-    ++pos;
-    location.cgiPass[extension] = interpreter;
-    if (pos < tokens.size() && tokens[pos] == ";")
-      ++pos;
-  }
-  else if (directive == "client_max_body_size")
-  {
-    if (pos >= tokens.size())
-      throw std::runtime_error("Config: Expected value after 'client_max_body_size'");
-    location.clientMaxBodySize = parseSize(tokens[pos]);
-    ++pos;
-    if (pos < tokens.size() && tokens[pos] == ";")
-      ++pos;
-  }
-  else if (directive == "return")
-  {
-    if (pos + 1 >= tokens.size())
-      throw std::runtime_error("Config: Expected code and URL after 'return'");
-    location.redirectCode = std::atoi(tokens[pos].c_str());
-    ++pos;
-    location.redirectUrl = tokens[pos];
-    ++pos;
-    if (pos < tokens.size() && tokens[pos] == ";")
-      ++pos;
+    LocationDirectiveHandler handler = it->second;
+    (this->*handler)(tokens, pos, location);
   }
   else
   {
@@ -506,6 +532,229 @@ void Config::parseLocationDirective(const std::vector<std::string> &tokens, size
     if (pos < tokens.size() && tokens[pos] == ";")
       ++pos;
   }
+
+  /////////////////////////////////////////////////////////////////
+
+  // if (directive == "root")
+  // {
+  //   if (pos >= tokens.size())
+  //     throw std::runtime_error("Config: Expected value after 'root'");
+  //   location.root = tokens[pos];
+  //   ++pos;
+  //   if (pos < tokens.size() && tokens[pos] == ";")
+  //     ++pos;
+  // }
+  // else if (directive == "index")
+  // {
+  //   location.index.clear();
+  //   while (pos < tokens.size() && tokens[pos] != ";" && tokens[pos] != "}")
+  //   {
+  //     location.index.push_back(tokens[pos]);
+  //     ++pos;
+  //   }
+  //   if (pos < tokens.size() && tokens[pos] == ";")
+  //     ++pos;
+  // }
+  // else if (directive == "limit_except")
+  // {
+  //   location.allowedMethods.clear();
+  //   while (pos < tokens.size() && tokens[pos] != ";" && tokens[pos] != "}")
+  //   {
+  //     location.allowedMethods.insert(tokens[pos]);
+  //     ++pos;
+  //   }
+  //   if (pos < tokens.size() && tokens[pos] == ";")
+  //     ++pos;
+  // }
+  // else if (directive == "autoindex")
+  // {
+  //   if (pos >= tokens.size())
+  //     throw std::runtime_error("Config: Expected value after 'autoindex'");
+  //   location.autoindex = (tokens[pos] == "on");
+  //   ++pos;
+  //   if (pos < tokens.size() && tokens[pos] == ";")
+  //     ++pos;
+  // }
+  // else if (directive == "upload_enable")
+  // {
+  //   if (pos >= tokens.size())
+  //     throw std::runtime_error("Config: Expected value after 'upload_enable'");
+  //   location.uploadEnable = (tokens[pos] == "on");
+  //   ++pos;
+  //   if (pos < tokens.size() && tokens[pos] == ";")
+  //     ++pos;
+  // }
+  // else if (directive == "upload_store")
+  // {
+  //   if (pos >= tokens.size())
+  //     throw std::runtime_error("Config: Expected value after 'upload_store'");
+  //   location.uploadStore = tokens[pos];
+  //   ++pos;
+  //   if (pos < tokens.size() && tokens[pos] == ";")
+  //     ++pos;
+  // }
+  // else if (directive == "cgi_enable")
+  // {
+  //   if (pos >= tokens.size())
+  //     throw std::runtime_error("Config: Expected value after 'cgi_enable'");
+  //   location.cgiEnable = (tokens[pos] == "on");
+  //   ++pos;
+  //   if (pos < tokens.size() && tokens[pos] == ";")
+  //     ++pos;
+  // }
+  // else if (directive == "cgi_pass")
+  // {
+  //   if (pos + 1 >= tokens.size())
+  //     throw std::runtime_error("Config: Expected extension and interpreter after 'cgi_pass'");
+  //   std::string extension = tokens[pos];
+  //   ++pos;
+  //   std::string interpreter = tokens[pos];
+  //   ++pos;
+  //   location.cgiPass[extension] = interpreter;
+  //   if (pos < tokens.size() && tokens[pos] == ";")
+  //     ++pos;
+  // }
+  // else if (directive == "client_max_body_size")
+  // {
+  //   if (pos >= tokens.size())
+  //     throw std::runtime_error("Config: Expected value after 'client_max_body_size'");
+  //   location.clientMaxBodySize = parseSize(tokens[pos]);
+  //   ++pos;
+  //   if (pos < tokens.size() && tokens[pos] == ";")
+  //     ++pos;
+  // }
+  // else if (directive == "return")
+  // {
+  //   if (pos + 1 >= tokens.size())
+  //     throw std::runtime_error("Config: Expected code and URL after 'return'");
+  //   location.redirectCode = std::atoi(tokens[pos].c_str());
+  //   ++pos;
+  //   location.redirectUrl = tokens[pos];
+  //   ++pos;
+  //   if (pos < tokens.size() && tokens[pos] == ";")
+  //     ++pos;
+  // }
+  // else
+  // {
+  //   // Skip unknown directive until semicolon
+  //   while (pos < tokens.size() && tokens[pos] != ";" && tokens[pos] != "}")
+  //     ++pos;
+  //   if (pos < tokens.size() && tokens[pos] == ";")
+  //     ++pos;
+  // }
+}
+
+// ============================================================================
+// LocationDirectiveHandlers
+// ============================================================================
+
+void Config::_handleRoot(const std::vector<std::string> &tokens, size_t &pos, LocationConfig &location) const
+{
+  if (pos >= tokens.size())
+    throw std::runtime_error("Config: Expected value after 'root'");
+  location.root = tokens[pos];
+  ++pos;
+  if (pos < tokens.size() && tokens[pos] == ";")
+    ++pos;
+}
+
+void Config::_handleIndex(const std::vector<std::string> &tokens, size_t &pos, LocationConfig &location) const
+{
+  location.index.clear();
+  while (pos < tokens.size() && tokens[pos] != ";" && tokens[pos] != "}")
+  {
+    location.index.push_back(tokens[pos]);
+    ++pos;
+  }
+  if (pos < tokens.size() && tokens[pos] == ";")
+    ++pos;
+}
+
+void Config::_handleLimitExcept(const std::vector<std::string> &tokens, size_t &pos, LocationConfig &location) const
+{
+  location.allowedMethods.clear();
+  while (pos < tokens.size() && tokens[pos] != ";" && tokens[pos] != "}")
+  {
+    location.allowedMethods.insert(tokens[pos]);
+    ++pos;
+  }
+  if (pos < tokens.size() && tokens[pos] == ";")
+    ++pos;
+}
+
+void Config::_handleAutoIndex(const std::vector<std::string> &tokens, size_t &pos, LocationConfig &location) const
+{
+  if (pos >= tokens.size())
+    throw std::runtime_error("Config: Expected value after 'autoindex'");
+  location.autoindex = (tokens[pos] == "on");
+  ++pos;
+  if (pos < tokens.size() && tokens[pos] == ";")
+    ++pos;
+}
+
+void Config::_handleUploadEnable(const std::vector<std::string> &tokens, size_t &pos, LocationConfig &location) const
+{
+  if (pos >= tokens.size())
+    throw std::runtime_error("Config: Expected value after 'upload_enable'");
+  location.uploadEnable = (tokens[pos] == "on");
+  ++pos;
+  if (pos < tokens.size() && tokens[pos] == ";")
+    ++pos;
+}
+
+void Config::_handleUploadStore(const std::vector<std::string> &tokens, size_t &pos, LocationConfig &location) const
+{
+  if (pos >= tokens.size())
+    throw std::runtime_error("Config: Expected value after 'upload_store'");
+  location.uploadStore = tokens[pos];
+  ++pos;
+  if (pos < tokens.size() && tokens[pos] == ";")
+    ++pos;
+}
+
+void Config::_handleCgiEnable(const std::vector<std::string> &tokens, size_t &pos, LocationConfig &location) const
+{
+  if (pos >= tokens.size())
+    throw std::runtime_error("Config: Expected value after 'cgi_enable'");
+  location.cgiEnable = (tokens[pos] == "on");
+  ++pos;
+  if (pos < tokens.size() && tokens[pos] == ";")
+    ++pos;
+}
+
+void Config::_handleCgiPass(const std::vector<std::string> &tokens, size_t &pos, LocationConfig &location) const
+{
+  if (pos + 1 >= tokens.size())
+    throw std::runtime_error("Config: Expected extension and interpreter after 'cgi_pass'");
+  std::string extension = tokens[pos];
+  ++pos;
+  std::string interpreter = tokens[pos];
+  ++pos;
+  location.cgiPass[extension] = interpreter;
+  if (pos < tokens.size() && tokens[pos] == ";")
+    ++pos;
+}
+
+void Config::_handleMaxBodySize(const std::vector<std::string> &tokens, size_t &pos, LocationConfig &location) const
+{
+  if (pos >= tokens.size())
+    throw std::runtime_error("Config: Expected value after 'client_max_body_size'");
+  location.clientMaxBodySize = parseSize(tokens[pos]);
+  ++pos;
+  if (pos < tokens.size() && tokens[pos] == ";")
+    ++pos;
+}
+
+void Config::_handleReturn(const std::vector<std::string> &tokens, size_t &pos, LocationConfig &location) const
+{
+  if (pos + 1 >= tokens.size())
+    throw std::runtime_error("Config: Expected code and URL after 'return'");
+  location.redirectCode = std::atoi(tokens[pos].c_str());
+  ++pos;
+  location.redirectUrl = tokens[pos];
+  ++pos;
+  if (pos < tokens.size() && tokens[pos] == ";")
+    ++pos;
 }
 
 // ============================================================================
@@ -531,7 +780,7 @@ bool Config::isNumber(const std::string &str)
   return !str.empty();
 }
 
-size_t Config::parseSize(const std::string &str)
+size_t Config::parseSize(const std::string &str) const
 {
   size_t len = str.length();
   if (len == 0)
