@@ -1,0 +1,151 @@
+.no-gutters>[class*=col-] {
+  margin-bottom: 0.5rem;
+}
+
+:root {
+  --page-col: #f3f6f9;
+}
+
+#plans-container {
+  margin-top: 2.5rem;
+}
+
+.plan-card {
+  margin-bottom: 2rem;
+  transition: all 0.42s cubic-bezier(0.19,1,0.22,1);
+  position: relative;
+  background-color: #fff;
+  border-radius: 0.3rem;
+  margin: 0.1875rem;
+  height: 100%;
+  box-shadow: 0 0.0625rem 0.125rem 0 rgba(22,45,61,0.1);
+  text-align: center;
+  font-family: 'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 0.875rem;
+  color: #162d3d;
+  padding: 3rem 1.5rem 6.25rem;
+  cursor: default;
+}
+
+.plan-card:hover {
+  box-shadow: 0 0.125rem 0 rgba(22,45,61,0.1), 0 0.625rem 3.375rem 0 rgba(22,45,61,0.1);
+  transform: translateY(-0.1875rem);
+}
+
+.plan-card .plan-name {
+  font-size: 1.3rem;
+  text-transform: uppercase;
+}
+
+.plan-card .plan-price {
+  position: relative;
+  margin-top: 0.625rem;
+}
+
+.plan-card .dollarsign {
+  display: inline-block;
+  vertical-align: top;
+  font-size: 1.25rem;
+}
+
+.plan-card .pricenum {
+  display: inline-block;
+  font-size: 3.5rem;
+  font-weight: 600;
+  line-height: 3.5rem;
+}
+
+.plan-card .permonth {
+  display: inline-block;
+  font-size: 0.9rem;
+  position: absolute;
+  bottom: 0;
+}
+
+.plan-card hr {
+  margin: 1.875rem 0;
+}
+
+.plan-card .plan-benefits {
+  text-align: left;
+  position: relative;
+}
+
+.plan-card .plan-benefits .plan-benefit::before {
+  content: '✔';
+  position: absolute;
+  left: 0;
+  color: green;
+}
+.plan-card .plan-benefits .plan-disbenefit::before {
+  content: '✘';
+  position: absolute;
+  left: 0;
+  color: #dc1111;
+}
+
+.plan-card .plan-benefits .plan-benefit,
+.plan-card .plan-benefits .plan-disbenefit {
+  margin-bottom: 0.9375rem;
+  padding-left: 1rem;
+}
+
+.plan-card .plan-select {
+  text-transform: uppercase;
+  margin-top: 1.5625rem;
+  font-size: 1.3rem;
+  font-weight: 600;
+  border-radius: 1.5rem;
+  background-color: #AA4DC8;
+  border-color: #AA4DC8;
+  position: absolute;
+  bottom: 2.5rem;
+  left: 1.5rem;
+  right: 1.5rem;
+}
+.plan-card .plan-select:hover {
+  background: #007bff;
+  border-color: #007bff;
+}
+
+.plan-card.recommended {
+  box-shadow: 0 0.0625rem 0.125rem rgba(0,0,0,.2), 0 0.3125rem 0.9375rem rgba(0,0,0,.1), 0 0.625rem 5rem 0 rgba(0,0,0,.1);
+  border-radius: 0 0 0.3rem 0.3rem;
+  border: 1px solid #AA4DC8;
+}
+.plan-card.recommended::before {
+  content: 'Recommended';
+  height: 2.1875rem;
+  line-height: 2.1875rem;
+  font-size: 1rem;
+  text-align: center;
+  font-weight: 600;
+  text-transform: uppercase;
+  background: #AA4DC8;
+  color: #fff;
+  border-radius: 0.3rem 0.3rem 0 0;
+  margin-bottom: -0.1875rem;
+  position: absolute;
+  left: -1px;
+  top: -2.1875rem;
+  right: -1px;
+}
+.plan-card.recommended hr {
+  background: #AA4DC8
+}
+@media (max-width: 991px) {
+  .plan-card.recommended {
+    border-radius: 0.3rem;
+  }
+  .plan-card.recommended::before {
+    top: 0;
+  }
+}
+
+.page-dark-mode .plan-card {
+  background: #393a3b;
+  color: #e4e6eb;
+}
+.page-dark-mode .plan-card.recommended {
+  box-shadow: 0 0.0625rem 0.125rem rgba(255,255,255,.2), 0 0.3125rem 0.9375rem rgba(255,255,255,.1), 0 0.625rem 5rem 0 rgba(255,255,255,.1);
+}
