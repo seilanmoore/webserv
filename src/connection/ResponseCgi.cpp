@@ -6,7 +6,7 @@
 /*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/14 19:00:00 by smoore-a          #+#    #+#             */
-/*   Updated: 2026/01/14 20:08:14 by smoore-a         ###   ########.fr       */
+/*   Updated: 2026/02/03 17:03:44 by smoore-a         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,7 @@
 #include <sstream>
 
 #include "Request.hpp"
+#include "../utils/utils.hpp"
 
 // ============================================================================
 // CGI Handler (now non-blocking - starts CGI and returns immediately)
@@ -147,6 +148,8 @@ bool Response::startCgi(Request &request, const std::string &scriptPath,
 
     char *argv[3] = {interpBuf, scriptBuf, NULL};
     execve(argv[0], argv, &envp[0]);
+    DEBUG_PRINT(errorStr(errno));
+    DEBUG_VAR("Script execution fail", scriptName);
     _exit(1);
   }
 
