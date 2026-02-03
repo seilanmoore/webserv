@@ -6,7 +6,7 @@
 /*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/14 19:30:00 by smoore-a          #+#    #+#             */
-/*   Updated: 2026/01/14 19:57:35 by smoore-a         ###   ########.fr       */
+/*   Updated: 2026/02/03 17:01:35 by smoore-a         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -172,6 +172,9 @@ void Webserv::finishCgi(CgiState *state)
 
   // Copy output to response's CGI info and finalize
   resp->getCgiInfo().outputData = state->outputData;
+  // Update fds to prevent double close
+  resp->getCgiInfo().stdinFd = state->stdinFd;
+  resp->getCgiInfo().stdoutFd = state->stdoutFd;
   resp->finalizeCgiResponse();
 
   // Re-enable connection for sending response
