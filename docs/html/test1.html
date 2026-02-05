@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebServ Functionality Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        section { margin-bottom: 40px; border: 1px solid #ccc; padding: 20px; }
+        h1, h2 { color: #333; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        input, textarea, select { margin: 5px; padding: 5px; }
+        pre { background: #f4f4f4; padding: 10px; border: 1px solid #ddd; max-height: 300px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+    <h1>WebServ Functionality Test</h1>
+
+    <section id="methods">
+        <h2>Test HTTP Methods</h2>
+        <label>URL: <input id="url" value="/cgi-bin/hello.sh" size="50"></label><br>
+        <label>Method: <select id="method">
+            <option>GET</option>
+            <option>POST</option>
+            <option>DELETE</option>
+        </select></label><br>
+        <label>Body (for POST): <textarea id="body" rows="4" cols="50"></textarea></label><br>
+        <button id="send">Send Request</button>
+        <pre id="response"></pre>
+    </section>
+
+    <section id="cgi">
+        <h2>Execute CGIs</h2>
+        <button data-cgi="/cgi-bin/hello.sh">Hello SH</button>
+        <button data-cgi="/cgi-bin/hello.php">Hello PHP</button>
+        <button data-cgi="/cgi-bin/hello.pl">Hello PL</button>
+        <button data-cgi="/cgi-bin/hello.rb">Hello RB</button>
+        <button data-cgi="/cgi-bin/hello.py">Hello PY</button>
+        <button data-cgi="/cgi-bin/fortune.py">Fortune</button>
+        <button data-cgi="/cgi-bin/post_test.py">Post Test</button>
+        <pre id="cgi-response"></pre>
+    </section>
+
+    <section id="upload">
+        <h2>Upload File</h2>
+        <input type="file" id="file">
+        <button id="upload-btn">Upload</button>
+        <p id="upload-status"></p>
+    </section>
+
+    <section id="download">
+        <h2>Download File</h2>
+        <label>Filename: <input id="filename" value="test_upload.txt"></label>
+        <button id="download-btn">Download</button>
+    </section>
+
+    <script>
+        // Test HTTP Methods
+        const sendBtn = document.getElementById('send');
+        sendBtn.addEventListener('click', () => {
+            const url = document.getElementById('url').value;
+            const method = document.getElementById('method').value;
+            const body = document.getElementById('body').value;
+            fetch(url, {
+                method: method,
+                body: method === 'POST' ? body : undefined,
+                headers: method === 'POST' ? {'Content-Type': 'text/plain'} : {}
+            })
+            .then(res => res.text())
+            .then(text => document.getElementById('response').textContent = text)
+            .catch(err => document.getElementById('response').textContent = 'Error: ' + err.message);
+        });
+
+        // Execute CGIs
+        document.querySelectorAll('#cgi button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const cgi = btn.dataset.cgi;
+                fetch(cgi)
+                .then(res => res.text())
+                .then(text => document.getElementById('cgi-response').textContent = text)
+                .catch(err => document.getElementById('cgi-response').textContent = 'Error: ' + err.message);
+            });
+        });
+
+        // Upload File
+        const uploadBtn = document.getElementById('upload-btn');
+        uploadBtn.addEventListener('click', () => {
+            const fileInput = document.getElementById('file');
+            const file = fileInput.files[0];
+            if (!file) {
+                document.getElementById('upload-status').textContent = 'Please select a file.';
+                return;
+            }
+            const formData = new FormData();
+            formData.append('file', file);
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.text())
+            .then(text => document.getElementById('upload-status').textContent = 'Uploaded: ' + text)
+            .catch(err => document.getElementById('upload-status').textContent = 'Error: ' + err.message);
+        });
+
+        // Download File
+        const downloadBtn = document.getElementById('download-btn');
+        downloadBtn.addEventListener('click', () => {
+            const filename = document.getElementById('filename').value;
+            if (!filename) {
+                alert('Please enter a filename.');
+                return;
+            }
+            window.open('/files/' + filename);
+        });
+    </script>
+</body>
+</html></content>
+<parameter name="filePath">/home/smoore-a/git/webserv/docs/html/test.html
