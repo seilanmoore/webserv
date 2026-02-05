@@ -6,7 +6,7 @@
 /*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/02 19:24:42 by smoore-a          #+#    #+#             */
-/*   Updated: 2026/01/10 20:52:37 by smoore-a         ###   ########.fr       */
+/*   Updated: 2026/02/04 16:21:18 by smoore-a         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,9 +37,6 @@ public:
 
     void parse(const std::string &rawRequest);
 
-    void parseRequestLine(const std::string &line);
-
-    void parseHeader();
     void setHeader(const char *buffer, ssize_t readBytes);
     void setBody(const char *buffer, ssize_t bytes);
 
