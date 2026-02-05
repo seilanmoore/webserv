@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Config.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: smoore-a <smoore-a@student.42.fr>          +#+  +:+       +#+        */
+/*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/10 13:45:07 by smoore-a          #+#    #+#             */
-/*   Updated: 2026/01/23 16:40:10 by smoore-a         ###   ########.fr       */
+/*   Updated: 2026/02/05 11:14:20 by smoore-a         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,6 +54,7 @@ struct LocationConfig
 // ============================================================================
 struct ServerConfig
 {
+  std::vector<std::string> env;
   std::string host;                      // Listen address (default: 0.0.0.0)
   uint16_t port;                         // Listen port
   std::string serverName;                // Server name (optional)
@@ -74,13 +75,13 @@ class Config
 {
 public:
   Config();
-  Config(const std::string &filename);
+  Config(const std::string &filename, const char **envp);
   Config(const Config &other);
   Config &operator=(const Config &other);
   ~Config();
 
   // Parse configuration file
-  void parse(const std::string &filename);
+  void parse(const std::string &filename, const char **envp);
 
   // Getters
   const std::vector<ServerConfig> &getServers() const;
@@ -94,8 +95,8 @@ private:
   // Parsing helpers
   void removeComments(std::string &content);
   std::vector<std::string> tokenize(const std::string &content);
-  void parseTokens(const std::vector<std::string> &tokens);
-  void parseServerBlock(const std::vector<std::string> &tokens, size_t &pos);
+  void parseTokens(const std::vector<std::string> &tokens, const char **envp);
+  void parseServerBlock(const std::vector<std::string> &tokens, size_t &pos, const char **envp);
   void parseLocationBlock(const std::vector<std::string> &tokens, size_t &pos,
                           ServerConfig &server);
   void parseDirective(const std::vector<std::string> &tokens, size_t &pos,

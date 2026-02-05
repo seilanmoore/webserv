@@ -6,7 +6,7 @@
 /*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/08 14:06:57 by smoore-a          #+#    #+#             */
-/*   Updated: 2026/01/14 19:47:54 by smoore-a         ###   ########.fr       */
+/*   Updated: 2026/02/05 11:10:02 by smoore-a         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,9 +46,6 @@ public:
   void setConnection(int fd, Connection *connection);
 
 private:
-  // const sDirectives *_genericDir;
-  // const sServer &_config;
-
   t_sockaddr_in _address;
   int _fd;
   std::string _name;

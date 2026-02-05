@@ -6,7 +6,7 @@
 /*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/10 13:44:26 by smoore-a          #+#    #+#             */
-/*   Updated: 2026/02/04 16:21:04 by smoore-a         ###   ########.fr       */
+/*   Updated: 2026/02/05 11:16:30 by smoore-a         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -109,11 +109,29 @@ Config::Config()
   _locationDirectiveTable["return"] = &Config::_handleReturn;
 }
 
-Config::Config(const std::string &filename)
+Config::Config(const std::string &filename, const char **envp)
     : _servers(),
       _rawContent()
 {
-  parse(filename);
+  _directiveTable["listen"] = &Config::_handleListen;
+  _directiveTable["server_name"] = &Config::_handleServerName;
+  _directiveTable["root"] = &Config::_handleRoot;
+  _directiveTable["index"] = &Config::_handleIndex;
+  _directiveTable["client_max_body_size"] = &Config::_handleMaxBodySize;
+  _directiveTable["error_page"] = &Config::_handleErrorPage;
+
+  _locationDirectiveTable["root"] = &Config::_handleRoot;
+  _locationDirectiveTable["index"] = &Config::_handleIndex;
+  _locationDirectiveTable["limit_except"] = &Config::_handleLimitExcept;
+  _locationDirectiveTable["autoindex"] = &Config::_handleAutoIndex;
+  _locationDirectiveTable["upload_enable"] = &Config::_handleUploadEnable;
+  _locationDirectiveTable["upload_store"] = &Config::_handleUploadStore;
+  _locationDirectiveTable["cgi_enable"] = &Config::_handleCgiEnable;
+  _locationDirectiveTable["cgi_pass"] = &Config::_handleCgiPass;
+  _locationDirectiveTable["client_max_body_size"] = &Config::_handleMaxBodySize;
+  _locationDirectiveTable["return"] = &Config::_handleReturn;
+
+  parse(filename, envp);
 }
 
 Config::Config(const Config &other)
@@ -140,7 +158,7 @@ Config::~Config()
 // Main Parse Function
 // ============================================================================
 
-void Config::parse(const std::string &filename)
+void Config::parse(const std::string &filename, const char **envp)
 {
   std::ifstream file(filename.c_str());
   if (!file.is_open())
@@ -157,7 +175,7 @@ void Config::parse(const std::string &filename)
   std::vector<std::string> tokens = tokenize(_rawContent);
 
   // Parse tokens
-  parseTokens(tokens);
+  parseTokens(tokens, envp);
 
   if (_servers.empty())
     throw std::runtime_error("Config: No server blocks found");
@@ -224,7 +242,7 @@ std::vector<std::string> Config::tokenize(const std::string &content)
   return tokens;
 }
 
-void Config::parseTokens(const std::vector<std::string> &tokens)
+void Config::parseTokens(const std::vector<std::string> &tokens, const char **envp)
 {
   size_t pos = 0;
 
@@ -242,7 +260,7 @@ void Config::parseTokens(const std::vector<std::string> &tokens)
       {
         if (tokens[pos] == "server")
         {
-          parseServerBlock(tokens, pos);
+          parseServerBlock(tokens, pos, envp);
         }
         else
         {
@@ -255,7 +273,7 @@ void Config::parseTokens(const std::vector<std::string> &tokens)
     }
     else if (tokens[pos] == "server")
     {
-      parseServerBlock(tokens, pos);
+      parseServerBlock(tokens, pos, envp);
     }
     else
     {
@@ -264,7 +282,7 @@ void Config::parseTokens(const std::vector<std::string> &tokens)
   }
 }
 
-void Config::parseServerBlock(const std::vector<std::string> &tokens, size_t &pos)
+void Config::parseServerBlock(const std::vector<std::string> &tokens, size_t &pos, const char **envp)
 {
   ServerConfig server;
 
@@ -287,6 +305,14 @@ void Config::parseServerBlock(const std::vector<std::string> &tokens, size_t &po
 
   if (pos < tokens.size())
     ++pos; // Skip closing '}'
+
+  std::cerr << "ENVIRONMENT VARS \n";
+
+  for (int i = 0; envp[i]; ++i)
+  {
+    server.env.push_back(std::string(envp[i]));
+    std::cerr << server.env[i] << "\n";
+  }
 
   _servers.push_back(server);
 }

@@ -6,7 +6,7 @@
 /*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/09 12:55:34 by smoore-a          #+#    #+#             */
-/*   Updated: 2026/02/05 10:57:11 by smoore-a         ###   ########.fr       */
+/*   Updated: 2026/02/05 11:15:23 by smoore-a         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,7 +77,7 @@ Webserv::~Webserv()
 // Initialization
 // ============================================================================
 
-void Webserv::parse(int argc, char **argv, char **envp)
+void Webserv::parse(int argc, char **argv, const char **envp)
 {
   std::string configFile = DEFAULT_CONFIG_FILE_PATH;
 
@@ -88,7 +88,7 @@ void Webserv::parse(int argc, char **argv, char **envp)
   else
     throw std::runtime_error("Usage: ./webserv [configuration file]");
 
-  _config.parse(configFile);
+  _config.parse(configFile, envp);
   std::cerr << "Configuration loaded: " << _config.getServerCount() << " server(s)" << std::endl;
 }
 
