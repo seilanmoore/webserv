@@ -6,7 +6,7 @@
 /*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/02 19:24:42 by smoore-a          #+#    #+#             */
-/*   Updated: 2026/02/04 16:21:18 by smoore-a         ###   ########.fr       */
+/*   Updated: 2026/02/05 10:54:09 by smoore-a         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,7 +62,6 @@ public:
     const std::map<std::string, std::string> &getOtherHeaders() const;
 
 private:
-    void parseChunkedBody(const std::string &data);
     bool decodeChunks();
     std::string _method;
     std::string _uri;
