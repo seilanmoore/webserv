@@ -6,7 +6,7 @@
 /*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/14 19:00:00 by smoore-a          #+#    #+#             */
-/*   Updated: 2026/02/03 17:03:44 by smoore-a         ###   ########.fr       */
+/*   Updated: 2026/02/05 10:34:45 by smoore-a         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,8 @@
 #include <sstream>
 
 #include "Request.hpp"
+
+#include <filesystem>
 #include "../utils/utils.hpp"
 
 // ============================================================================
@@ -42,9 +44,23 @@ void Response::handleCgi(Request &request, const std::string &scriptPath,
 bool Response::startCgi(Request &request, const std::string &scriptPath,
                         const std::string &interpreter)
 {
-  // Create pipes: one for stdin (to send body), one for stdout (to receive response)
-  int pipeIn[2];  // Parent writes, child reads (stdin)
-  int pipeOut[2]; // Child writes, parent reads (stdout)
+  std::string absInterpreter = interpreter;
+
+  if (!absInterpreter.empty() && (access(absInterpreter.c_str(), F_OK) != 0 || access(absInterpreter.c_str(), X_OK) != 0))
+  {
+    _statusCode = 500;
+    _statusMessage = "Internal Server Error";
+    _fileContent = "<html><body><h1>500 Internal Server Error - CGI interpreter not found or not executable</h1></body></html>";
+    _contentType = "text/html";
+    _contentLength = _fileContent.length();
+    std::ostringstream oss;
+    oss << _contentLength;
+    _response = "HTTP/1.1 500 Internal Server Error\r\nContent-Type: text/html\r\nContent-Length: " + oss.str() + "\r\n\r\n" + _fileContent;
+    return false;
+  }
+
+  int pipeIn[2];
+  int pipeOut[2];
 
   if (pipe(pipeIn) == -1 || pipe(pipeOut) == -1)
   {
@@ -87,8 +103,6 @@ bool Response::startCgi(Request &request, const std::string &scriptPath,
     close(pipeIn[0]);
     close(pipeOut[1]);
 
-    // Get absolute path of interpreter
-    std::string absInterpreter = interpreter;
     if (!interpreter.empty() && interpreter[0] != '/')
     {
       char cwd[1024];
@@ -150,7 +164,7 @@ bool Response::startCgi(Request &request, const std::string &scriptPath,
     execve(argv[0], argv, &envp[0]);
     DEBUG_PRINT(errorStr(errno));
     DEBUG_VAR("Script execution fail", scriptName);
-    _exit(1);
+    std::_Exit(1);
   }
 
   // Parent process - set up non-blocking CGI state
@@ -276,13 +290,13 @@ void Response::finalizeCgiResponse()
   }
   else
   {
-    _statusCode = 500;
+    _statusCode = 502;
     _statusMessage = "Internal Server Error";
-    _fileContent = "<html><body><h1>500 Internal Server Error - CGI produced no output</h1></body></html>";
+    _fileContent = "<html><body><h1>502 Internal Server Error - CGI produced no output</h1></body></html>";
     _contentType = "text/html";
     _contentLength = _fileContent.length();
     std::ostringstream oss;
     oss << _contentLength;
-    _response = "HTTP/1.1 500 Internal Server Error\r\nContent-Type: text/html\r\nContent-Length: " + oss.str() + "\r\n\r\n" + _fileContent;
+    _response = "HTTP/1.1 502 Internal Server Error\r\nContent-Type: text/html\r\nContent-Length: " + oss.str() + "\r\n\r\n" + _fileContent;
   }
 }
