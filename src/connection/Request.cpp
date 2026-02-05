@@ -6,7 +6,7 @@
 /*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/02 20:00:09 by smoore-a          #+#    #+#             */
-/*   Updated: 2026/01/10 20:59:45 by smoore-a         ###   ########.fr       */
+/*   Updated: 2026/02/04 14:20:09 by smoore-a         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -162,17 +162,6 @@ void Request::parse(const std::string &rawRequest)
     }
 }
 
-void Request::parseRequestLine(const std::string &line)
-{
-    std::istringstream iss(line);
-    iss >> _method >> _uri >> _version;
-}
-
-void Request::parseHeader()
-{
-    parse(_header);
-}
-
 void Request::setHeader(const char *buffer, ssize_t readBytes)
 {
     (void)readBytes;
@@ -180,7 +169,7 @@ void Request::setHeader(const char *buffer, ssize_t readBytes)
     std::size_t end = _header.find("\r\n\r\n");
     if (end != std::string::npos)
     {
-        parseHeader();
+        parse(_header);
 
         // Check if we have body data after headers
         std::string bodyData;
