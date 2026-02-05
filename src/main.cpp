@@ -6,7 +6,7 @@
 /*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/01 11:24:30 by smoore-a          #+#    #+#             */
-/*   Updated: 2025/12/28 14:24:36 by smoore-a         ###   ########.fr       */
+/*   Updated: 2026/02/05 10:55:38 by smoore-a         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,15 +19,13 @@
 
 int main(int argc, char **argv, char **envp)
 {
-  (void)envp;
-
   // Ignore SIGPIPE to prevent crash when client closes connection early
   signal(SIGPIPE, SIG_IGN);
 
   Webserv webserv;
   try
   {
-    webserv.parse(argc, argv);
+    webserv.parse(argc, argv, envp);
     webserv.initServer();
     webserv.loop();
   }

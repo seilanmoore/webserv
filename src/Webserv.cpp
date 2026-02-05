@@ -6,7 +6,7 @@
 /*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/09 12:55:34 by smoore-a          #+#    #+#             */
-/*   Updated: 2026/01/14 19:57:35 by smoore-a         ###   ########.fr       */
+/*   Updated: 2026/02/05 10:57:11 by smoore-a         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,12 +77,12 @@ Webserv::~Webserv()
 // Initialization
 // ============================================================================
 
-void Webserv::parse(int argc, char **argv)
+void Webserv::parse(int argc, char **argv, char **envp)
 {
   std::string configFile = DEFAULT_CONFIG_FILE_PATH;
 
   if (argc == 1)
-    ; // Use default config path
+    ;
   else if (argc == 2)
     configFile = argv[1];
   else

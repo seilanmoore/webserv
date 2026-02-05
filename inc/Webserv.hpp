@@ -6,7 +6,7 @@
 /*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/09 12:36:27 by smoore-a          #+#    #+#             */
-/*   Updated: 2026/01/14 19:47:29 by smoore-a         ###   ########.fr       */
+/*   Updated: 2026/02/05 10:55:58 by smoore-a         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,7 @@ public:
   Webserv();
   ~Webserv();
 
-  void parse(int argc, char **argv);
+  void parse(int argc, char **argv, char **envp);
   void initServer();
   void loop();
 
