@@ -6,7 +6,7 @@
 /*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/14 19:00:00 by smoore-a          #+#    #+#             */
-/*   Updated: 2026/02/06 17:58:10 by smoore-a         ###   ########.fr       */
+/*   Updated: 2026/02/06 19:29:15 by smoore-a         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,13 +45,6 @@ bool Response::startCgi(Request &request, const std::string &scriptPath,
                         const std::string &interpreter)
 {
   std::string absInterpreter = interpreter;
-
-  if (!interpreter.empty() && interpreter[0] != '/')
-  {
-    char cwd[1024];
-    if (getcwd(cwd, sizeof(cwd)))
-      absInterpreter = std::string(cwd) + "/" + interpreter;
-  }
 
   if (!absInterpreter.empty() && (access(absInterpreter.c_str(), F_OK) != 0 || access(absInterpreter.c_str(), X_OK) != 0))
   {
@@ -110,12 +103,12 @@ bool Response::startCgi(Request &request, const std::string &scriptPath,
     close(pipeIn[0]);
     close(pipeOut[1]);
 
-    if (!interpreter.empty() && interpreter[0] != '/')
-    {
-      char cwd[1024];
-      if (getcwd(cwd, sizeof(cwd)))
-        absInterpreter = std::string(cwd) + "/" + interpreter;
-    }
+    // if (!interpreter.empty() && interpreter[0] != '/')
+    // {
+    //   char cwd[1024];
+    //   if (getcwd(cwd, sizeof(cwd)))
+    //     absInterpreter = std::string(cwd) + "/" + interpreter;
+    // }
 
     // Change to script directory
     std::string scriptName = scriptPath;
