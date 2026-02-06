@@ -6,7 +6,7 @@
 /*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/10 13:45:07 by smoore-a          #+#    #+#             */
-/*   Updated: 2026/02/05 11:14:20 by smoore-a         ###   ########.fr       */
+/*   Updated: 2026/02/06 14:36:50 by smoore-a         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,7 +54,7 @@ struct LocationConfig
 // ============================================================================
 struct ServerConfig
 {
-  std::vector<std::string> env;
+  std::string pwd;
   std::string host;                      // Listen address (default: 0.0.0.0)
   uint16_t port;                         // Listen port
   std::string serverName;                // Server name (optional)
