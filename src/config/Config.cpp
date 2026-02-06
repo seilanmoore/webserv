@@ -6,7 +6,7 @@
 /*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/10 13:44:26 by smoore-a          #+#    #+#             */
-/*   Updated: 2026/02/06 14:38:21 by smoore-a         ###   ########.fr       */
+/*   Updated: 2026/02/06 19:38:27 by smoore-a         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -306,17 +306,13 @@ void Config::parseServerBlock(const std::vector<std::string> &tokens, size_t &po
   if (pos < tokens.size())
     ++pos; // Skip closing '}'
 
-  std::cerr << "ENVIRONMENT PWD \n";
-
   std::string var;
   for (size_t i = 0; envp[i]; ++i)
   {
     var = std::string(envp[i]);
-    // std::cerr << "[ENV] " << pwd << "\n";
     if (var.substr(0, 4).compare("PWD=") == 0)
     {
       server.pwd = var.substr(var.find_first_of('=') + 1);
-      std::cerr << "PWD = " << server.pwd << '\n';
     }
   }
 
