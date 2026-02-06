@@ -6,7 +6,7 @@
 /*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/01 11:24:30 by smoore-a          #+#    #+#             */
-/*   Updated: 2026/02/05 10:55:38 by smoore-a         ###   ########.fr       */
+/*   Updated: 2026/02/05 11:22:53 by smoore-a         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@ int main(int argc, char **argv, char **envp)
   Webserv webserv;
   try
   {
-    webserv.parse(argc, argv, envp);
+    webserv.parse(argc, argv, const_cast<const char **>(envp));
     webserv.initServer();
     webserv.loop();
   }
