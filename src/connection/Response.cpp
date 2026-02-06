@@ -6,7 +6,7 @@
 /*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/21 14:26:31 by smoore-a          #+#    #+#             */
-/*   Updated: 2026/01/14 19:47:54 by smoore-a         ###   ########.fr       */
+/*   Updated: 2026/02/06 19:25:17 by smoore-a         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -158,7 +158,12 @@ void Response::handleGet(Request &request, const ServerConfig &server,
     std::map<std::string, std::string>::const_iterator it = location->cgiPass.find(ext);
     if (it != location->cgiPass.end())
     {
-      handleCgi(request, fullPath, it->second);
+      std::string interpreter;
+      if ((it->second).at(0) != '/')
+        interpreter = server.pwd + '/' + it->second;
+      else
+        interpreter = it->second;
+      handleCgi(request, fullPath, interpreter);
       return;
     }
   }
@@ -182,7 +187,12 @@ void Response::handlePost(Request &request, const ServerConfig &server,
     if (it != location->cgiPass.end())
     {
       std::string fullPath = HttpUtils::buildFullPath(root, uri, locationPath);
-      handleCgi(request, fullPath, it->second);
+      std::string interpreter;
+      if ((it->second).at(0) != '/')
+        interpreter = server.pwd + '/' + it->second;
+      else
+        interpreter = it->second;
+      handleCgi(request, fullPath, interpreter);
       return;
     }
   }
