@@ -6,7 +6,7 @@
 /*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/21 14:26:27 by smoore-a          #+#    #+#             */
-/*   Updated: 2026/01/14 19:47:54 by smoore-a         ###   ########.fr       */
+/*   Updated: 2026/02/14 15:56:36 by smoore-a         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,12 +40,12 @@ public:
   void finalizeCgiResponse();
 
   // Set raw response (for timeouts, errors)
-  void setRawResponse(const std::string &response) { _response = response; }
+  void setRawResponse(const std::string &response);
 
   // CGI state accessors
-  bool hasPendingCgi() const { return _cgiState.active; }
-  CgiState &getCgiInfo() { return _cgiState; }
-  const CgiState &getCgiInfo() const { return _cgiState; }
+  bool hasPendingCgi() const;
+  CgiState &getCgiInfo();
+  const CgiState &getCgiInfo() const;
 
 private:
   // Status

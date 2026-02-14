@@ -6,7 +6,7 @@
 /*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/21 14:26:31 by smoore-a          #+#    #+#             */
-/*   Updated: 2026/02/06 19:25:17 by smoore-a         ###   ########.fr       */
+/*   Updated: 2026/02/14 17:13:28 by smoore-a         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,20 +78,16 @@ void Response::generateResponse(Request &request, const ServerConfig &server)
   const std::string &method = request.getMethod();
   const std::string &uri = request.getPath();
 
-  // Track HEAD requests - they use GET logic but must not send body
   _isHeadRequest = (method == "HEAD");
 
-  // Find matching location
   const LocationConfig *location = server.matchLocation(uri);
 
-  // Handle redirections first (before method check)
   if (location && location->redirectCode != 0)
   {
     handleRedirect(location->redirectCode, location->redirectUrl);
     return;
   }
 
-  // Check if method is allowed
   if (location)
   {
     if (location->allowedMethods.find(method) == location->allowedMethods.end())
@@ -101,7 +97,6 @@ void Response::generateResponse(Request &request, const ServerConfig &server)
     }
   }
 
-  // Check body size limit (location setting takes precedence over server setting)
   size_t maxBodySize = server.clientMaxBodySize;
   if (location && location->clientMaxBodySize > 0)
     maxBodySize = location->clientMaxBodySize;
@@ -112,7 +107,6 @@ void Response::generateResponse(Request &request, const ServerConfig &server)
     return;
   }
 
-  // Route to appropriate handler
   if (method == "GET" || method == "HEAD")
     handleGet(request, server, location);
   else if (method == "POST")
@@ -134,24 +128,31 @@ void Response::handleGet(Request &request, const ServerConfig &server,
   std::string root = location ? location->root : server.root;
   std::string locationPath = location ? location->path : "/";
 
-  // Build full file path
   std::string fullPath = HttpUtils::buildFullPath(root, uri, locationPath);
 
-  // Check if path exists
   if (!HttpUtils::fileExists(fullPath))
   {
     generateErrorPage(404, server);
     return;
   }
 
-  // Handle directory
   if (HttpUtils::isDirectory(fullPath))
   {
+    if (access(fullPath.c_str(), R_OK | X_OK) != 0)
+    {
+      generateErrorPage(403, server);
+      return;
+    }
     serveDirectory(fullPath, uri, location, server);
     return;
   }
 
-  // Check for CGI
+  if (access(fullPath.c_str(), R_OK) != 0)
+  {
+    generateErrorPage(403, server);
+    return;
+  }
+
   if (location && location->cgiEnable)
   {
     std::string ext = request.getFileExtension();
@@ -168,7 +169,6 @@ void Response::handleGet(Request &request, const ServerConfig &server,
     }
   }
 
-  // Serve file
   serveFile(fullPath);
 }
 
@@ -337,7 +337,6 @@ void Response::serveFile(const std::string &filePath)
   _contentType = HttpUtils::getMimeType(filePath);
   _filename = filePath;
 
-  // Check if binary
   _isBinary = (_contentType.find("text/") == std::string::npos &&
                _contentType.find("application/json") == std::string::npos &&
                _contentType.find("application/javascript") == std::string::npos &&
@@ -358,7 +357,6 @@ void Response::serveFile(const std::string &filePath)
       _fileFound = true;
       _contentLength = size;
 
-      // Use chunked for large files
       if (static_cast<size_t>(size) > CHUNKED_THRESHOLD)
         _useChunked = true;
     }
@@ -375,7 +373,6 @@ void Response::serveFile(const std::string &filePath)
       _fileFound = true;
       _contentLength = _fileContent.length();
 
-      // Use chunked for large files
       if (_fileContent.length() > CHUNKED_THRESHOLD)
         _useChunked = true;
     }
@@ -401,7 +398,6 @@ void Response::serveFile(const std::string &filePath)
 
   if (_useChunked)
   {
-    // Chunked transfer encoding - no Content-Length
     _response = "HTTP/1.1 " + codeStr.str() + " " + _statusMessage + "\r\n"
                                                                      "Content-Type: " +
                 _contentType + "\r\n"
@@ -420,7 +416,6 @@ void Response::serveFile(const std::string &filePath)
                 oss.str() + "\r\n"
                             "\r\n";
 
-    // For HEAD requests, don't include body
     if (!_isBinary && !_isHeadRequest)
       _response += _fileContent;
   }
@@ -676,10 +671,8 @@ ssize_t Response::sendResponse(int fd)
 {
   ssize_t bytesSent;
 
-  // Handle chunked transfer encoding
   if (_useChunked)
   {
-    // First send headers if not sent
     if (!_headersSent)
     {
       bytesSent = send(fd, _response.c_str(), _response.length(), 0);
@@ -689,7 +682,6 @@ ssize_t Response::sendResponse(int fd)
       return bytesSent;
     }
 
-    // Determine the content source (binary or text)
     const char *contentData;
     size_t contentSize;
     if (_isBinary && !_binaryContent.empty())
@@ -772,4 +764,24 @@ ssize_t Response::sendResponse(int fd)
     return 0;
   }
   return _bytesSent;
+}
+
+void Response::setRawResponse(const std::string &response)
+{
+  _response = response;
+}
+
+bool Response::hasPendingCgi() const
+{
+  return _cgiState.active;
+}
+
+CgiState &Response::getCgiInfo()
+{
+  return _cgiState;
+}
+
+const CgiState &Response::getCgiInfo() const
+{
+  return _cgiState;
 }
