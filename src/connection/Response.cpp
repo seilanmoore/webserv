@@ -6,7 +6,7 @@
 /*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/21 14:26:31 by smoore-a          #+#    #+#             */
-/*   Updated: 2026/02/14 17:13:28 by smoore-a         ###   ########.fr       */
+/*   Updated: 2026/02/14 20:13:59 by smoore-a         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -445,7 +445,6 @@ void Response::serveDirectory(const std::string &dirPath, const std::string &uri
     }
   }
 
-  // Check autoindex
   bool autoindex = location ? location->autoindex : false;
   if (autoindex)
   {
@@ -453,7 +452,6 @@ void Response::serveDirectory(const std::string &dirPath, const std::string &uri
     return;
   }
 
-  // No index file and no autoindex - return 404
   generateErrorPage(404, server);
 }
 
@@ -485,7 +483,6 @@ void Response::generateDirectoryListing(const std::string &dirPath, const std::s
        << "<h1>Index of " << uri << "</h1>\n"
        << "<hr>\n<table>\n";
 
-  // Parent directory link
   if (uri != "/" && !uri.empty())
   {
     std::string parent = uri;
@@ -551,7 +548,6 @@ void Response::generateDirectoryListing(const std::string &dirPath, const std::s
               oss.str() + "\r\n"
                           "\r\n";
 
-  // For HEAD requests, don't include body
   if (!_isHeadRequest)
     _response += _fileContent;
 }
