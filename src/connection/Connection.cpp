@@ -94,7 +94,7 @@ ssize_t Connection::receiveRequest()
   if (bytesRead == 0)
   {
     std::ostringstream oss;
-    oss << "Connection on port " << getPort() << " disconnected";
+    oss << "\nConnection on port " << getPort() << " disconnected";
     DEBUG_PRINT(oss.str());
     return -1;
   }
@@ -111,9 +111,12 @@ ssize_t Connection::receiveRequest()
   recvStatus = _request->getRecvStatus();
   if (recvStatus == DONE)
   {
-    // Debug output commented for production
-    // std::cerr << "Request from connection on port " << _port << ":\n"
-    //           << _request->getHeader() << '\n';
+    std::ostringstream oss;
+    oss << "\nRequest from connection on port " << _port << ":\n"
+        << "///////////////////////////////////////////////////\n"
+        << _request->getHeader()
+        << "\n///////////////////////////////////////////////////";
+    DEBUG_PRINT(oss.str());
     return 0;
   }
 
