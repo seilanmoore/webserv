@@ -6,7 +6,7 @@
 /*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/14 19:00:00 by smoore-a          #+#    #+#             */
-/*   Updated: 2026/01/14 18:59:37 by smoore-a         ###   ########.fr       */
+/*   Updated: 2026/02/14 16:35:45 by smoore-a         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,7 +70,6 @@ namespace HttpUtils
 
     std::string ext = path.substr(dot);
 
-    // Text types
     if (ext == ".html" || ext == ".htm")
       return "text/html";
     if (ext == ".css")
@@ -84,7 +83,6 @@ namespace HttpUtils
     if (ext == ".txt")
       return "text/plain";
 
-    // Image types
     if (ext == ".png")
       return "image/png";
     if (ext == ".jpg" || ext == ".jpeg")
@@ -98,7 +96,6 @@ namespace HttpUtils
     if (ext == ".webp")
       return "image/webp";
 
-    // Audio/Video
     if (ext == ".mp3")
       return "audio/mpeg";
     if (ext == ".mp4")
@@ -106,7 +103,6 @@ namespace HttpUtils
     if (ext == ".webm")
       return "video/webm";
 
-    // Documents
     if (ext == ".pdf")
       return "application/pdf";
     if (ext == ".zip")

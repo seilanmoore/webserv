@@ -6,7 +6,7 @@
 /*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/02 20:00:09 by smoore-a          #+#    #+#             */
-/*   Updated: 2026/02/14 13:08:13 by smoore-a         ###   ########.fr       */
+/*   Updated: 2026/02/14 13:18:59 by smoore-a         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -170,14 +170,12 @@ void Request::setHeader(const char *buffer)
     {
         parse(_header);
 
-        // Check if we have body data after headers
         std::string bodyData;
         if (_header.length() > end + 4)
             bodyData = _header.substr(end + 4);
 
         if (_isChunked)
         {
-            // Chunked transfer encoding
             _recvStatus = BODY;
             if (!bodyData.empty())
             {
@@ -189,7 +187,6 @@ void Request::setHeader(const char *buffer)
         else if (_contentLength > 0)
         {
             _recvStatus = BODY;
-            // Move any data after headers to body
             if (!bodyData.empty())
             {
                 _body.insert(_body.end(), bodyData.begin(), bodyData.end());
@@ -207,7 +204,6 @@ void Request::setBody(const char *buffer, ssize_t readBytes)
 {
     if (_isChunked)
     {
-        // Add to chunk buffer and try to decode
         _chunkBuffer.append(buffer, static_cast<size_t>(readBytes));
         if (decodeChunks())
             _recvStatus = DONE;
