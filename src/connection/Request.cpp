@@ -6,7 +6,7 @@
 /*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/02 20:00:09 by smoore-a          #+#    #+#             */
-/*   Updated: 2026/02/04 14:20:09 by smoore-a         ###   ########.fr       */
+/*   Updated: 2026/02/14 13:08:13 by smoore-a         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -162,9 +162,8 @@ void Request::parse(const std::string &rawRequest)
     }
 }
 
-void Request::setHeader(const char *buffer, ssize_t readBytes)
+void Request::setHeader(const char *buffer)
 {
-    (void)readBytes;
     _header += buffer;
     std::size_t end = _header.find("\r\n\r\n");
     if (end != std::string::npos)

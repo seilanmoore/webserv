@@ -93,20 +93,18 @@ ssize_t Connection::receiveRequest()
 
   if (bytesRead == 0)
   {
-    // Debug output commented for production
-    // std::cerr << "Connection on port " << getPort() << " disconnected" << std::endl;
+    std::ostringstream oss;
+    oss << "Connection on port " << getPort() << " disconnected";
+    DEBUG_PRINT(oss.str());
     return -1;
   }
 
   buffer[bytesRead] = '\0';
 
-  // std::cerr << "Read: " << buffer << '\n';
-  // std::cerr << "Bytes: " << bytesRead << '\n';
-
   tRecvStatus recvStatus = _request->getRecvStatus();
 
   if (recvStatus == HEADER)
-    _request->setHeader(buffer, bytesRead);
+    _request->setHeader(buffer);
   else if (recvStatus == BODY)
     _request->setBody(buffer, bytesRead);
 

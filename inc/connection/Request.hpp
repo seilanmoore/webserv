@@ -6,7 +6,7 @@
 /*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/02 19:24:42 by smoore-a          #+#    #+#             */
-/*   Updated: 2026/02/05 10:54:09 by smoore-a         ###   ########.fr       */
+/*   Updated: 2026/02/14 13:08:25 by smoore-a         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,7 @@ public:
 
     void parse(const std::string &rawRequest);
 
-    void setHeader(const char *buffer, ssize_t readBytes);
+    void setHeader(const char *buffer);
     void setBody(const char *buffer, ssize_t bytes);
 
     // Getters
