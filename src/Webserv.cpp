@@ -6,7 +6,7 @@
 /*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/09 12:55:34 by smoore-a          #+#    #+#             */
-/*   Updated: 2026/02/05 11:15:23 by smoore-a         ###   ########.fr       */
+/*   Updated: 2026/02/14 15:58:05 by smoore-a         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -200,8 +200,6 @@ void Webserv::receiveConnectionRequest(nfds_t &pos)
   int connectionFD = _pollFD[pos].fd;
   Connection *connection = _connection[connectionFD];
 
-  // If there's a pending CGI, we keep POLLIN to detect client disconnect
-  // but we don't actually read any data - just ignore POLLIN events
   if (connection->hasPendingCgi())
   {
     return;
@@ -217,14 +215,12 @@ void Webserv::receiveConnectionRequest(nfds_t &pos)
 
   if (receiveStatus == 0)
   {
-    // Get the server config for this connection
     int serverFD = connection->getServerFD();
     size_t configIndex = _serverConfigIndex[serverFD];
     const ServerConfig &serverConfig = _config.getServer(configIndex);
 
     connection->generateResponse(serverConfig);
 
-    // Check if a CGI was started
     if (connection->hasPendingCgi())
     {
       // Add CGI pipes to poll
