@@ -1,1145 +1,1841 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>WEBSERV — 42 Project Tester</title>
-<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet"/>
-<style>
-/* ═══════════════════════════════════════════════
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WEBSERV — 42 Project Tester</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap"
+    rel="stylesheet" />
+  <style>
+    /* ═══════════════════════════════════════════════
    RESET & VARIABLES
    ═══════════════════════════════════════════════ */
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --bg:#080a0d;
-  --surf:#0e1117;
-  --surf2:#151821;
-  --border:#1e2533;
-  --border-hi:#2e3a4d;
-  --txt:#8fa3bf;
-  --txt-hi:#c4d4e8;
-  --txt-dim:#3d4f66;
-  --green:#39ff85;
-  --green-dim:#1a8a47;
-  --green-glow:rgba(57,255,133,.18);
-  --amber:#f0c040;
-  --amber-dim:#8a7020;
-  --red:#ff4d4d;
-  --red-dim:#8a2828;
-  --cyan:#40d4f0;
-  --cyan-dim:#1a7a8a;
-  --pink:#e06cf0;
-  --pink-dim:#7a3a84;
-  --radius:4px;
-  --mono:'Share Tech Mono',monospace;
-  --orb:'Orbitron',sans-serif;
-}
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
 
-html{scroll-behavior:smooth}
-body{
-  background:var(--bg);
-  color:var(--txt);
-  font-family:var(--mono);
-  font-size:13px;
-  line-height:1.65;
-  min-height:100vh;
-  overflow-x:hidden;
-}
+    :root {
+      --bg: #080a0d;
+      --surf: #0e1117;
+      --surf2: #151821;
+      --border: #1e2533;
+      --border-hi: #2e3a4d;
+      --txt: #8fa3bf;
+      --txt-hi: #c4d4e8;
+      --txt-dim: #3d4f66;
+      --green: #39ff85;
+      --green-dim: #1a8a47;
+      --green-glow: rgba(57, 255, 133, .18);
+      --amber: #f0c040;
+      --amber-dim: #8a7020;
+      --red: #ff4d4d;
+      --red-dim: #8a2828;
+      --cyan: #40d4f0;
+      --cyan-dim: #1a7a8a;
+      --pink: #e06cf0;
+      --pink-dim: #7a3a84;
+      --radius: 4px;
+      --mono: 'Share Tech Mono', monospace;
+      --orb: 'Orbitron', sans-serif;
+    }
 
-/* ─── scanline overlay ─── */
-body::after{
-  content:'';
-  position:fixed;inset:0;
-  background:repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 2px,
-    rgba(0,0,0,.08) 2px,
-    rgba(0,0,0,.08) 4px
-  );
-  pointer-events:none;z-index:9999;
-}
+    html {
+      scroll-behavior: smooth
+    }
 
-/* ═══════════════════════════════════════════════
+    body {
+      background: var(--bg);
+      color: var(--txt);
+      font-family: var(--mono);
+      font-size: 13px;
+      line-height: 1.65;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ─── scanline overlay ─── */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(0deg,
+          transparent,
+          transparent 2px,
+          rgba(0, 0, 0, .08) 2px,
+          rgba(0, 0, 0, .08) 4px);
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    /* ═══════════════════════════════════════════════
    TOP BAR
    ═══════════════════════════════════════════════ */
-.topbar{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:12px 28px;
-  background:var(--surf);
-  border-bottom:1px solid var(--border);
-  position:sticky;top:0;z-index:100;
-  backdrop-filter:blur(6px);
-}
-.topbar-left{display:flex;align-items:center;gap:14px}
-.logo{
-  font-family:var(--orb);
-  font-size:18px;font-weight:900;
-  color:var(--green);
-  text-shadow:0 0 12px var(--green-glow);
-  letter-spacing:4px;
-}
-.logo span{color:var(--txt-dim);font-weight:400;font-size:11px;letter-spacing:1px}
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 28px;
+      background: var(--surf);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(6px);
+    }
 
-.nav-tabs{display:flex;gap:4px;flex-wrap:wrap}
-.nav-tabs a{
-  text-decoration:none;
-  color:var(--txt-dim);
-  font-size:11px;letter-spacing:1.5px;text-transform:uppercase;
-  padding:5px 13px;border-radius:var(--radius);
-  border:1px solid transparent;
-  transition:all .2s;
-}
-.nav-tabs a:hover{color:var(--green);border-color:var(--green);background:var(--green-glow)}
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 14px
+    }
 
-.server-badge{
-  font-size:11px;color:var(--green);
-  background:var(--green-glow);
-  border:1px solid rgba(57,255,133,.3);
-  border-radius:var(--radius);
-  padding:4px 10px;
-  display:flex;align-items:center;gap:6px;
-}
-.server-badge .dot{
-  width:7px;height:7px;border-radius:50%;
-  background:var(--green);
-  box-shadow:0 0 6px var(--green);
-  animation:pulse 2s infinite;
-}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+    .logo {
+      font-family: var(--orb);
+      font-size: 18px;
+      font-weight: 900;
+      color: var(--green);
+      text-shadow: 0 0 12px var(--green-glow);
+      letter-spacing: 4px;
+    }
 
-/* ═══════════════════════════════════════════════
+    .logo span {
+      color: var(--txt-dim);
+      font-weight: 400;
+      font-size: 11px;
+      letter-spacing: 1px
+    }
+
+    .nav-tabs {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap
+    }
+
+    .nav-tabs a {
+      text-decoration: none;
+      color: var(--txt-dim);
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 5px 13px;
+      border-radius: var(--radius);
+      border: 1px solid transparent;
+      transition: all .2s;
+    }
+
+    .nav-tabs a:hover {
+      color: var(--green);
+      border-color: var(--green);
+      background: var(--green-glow)
+    }
+
+    .server-badge {
+      font-size: 11px;
+      color: var(--green);
+      background: var(--green-glow);
+      border: 1px solid rgba(57, 255, 133, .3);
+      border-radius: var(--radius);
+      padding: 4px 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .server-badge .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 6px var(--green);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: .4
+      }
+    }
+
+    /* ═══════════════════════════════════════════════
    CONFIG PANEL (server_name / listen)
    ═══════════════════════════════════════════════ */
-.config-strip{
-  background:var(--surf);
-  border-bottom:1px solid var(--border);
-  padding:10px 28px;
-  display:flex;align-items:center;gap:24px;flex-wrap:wrap;
-}
-.config-strip label{font-size:10px;color:var(--txt-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;display:block}
-.config-strip input,
-.config-strip select{
-  background:var(--surf2);border:1px solid var(--border);border-radius:var(--radius);
-  color:var(--green);font-family:var(--mono);font-size:13px;
-  padding:6px 10px;outline:none;width:auto;min-width:100px;
-}
-.config-strip input:focus,
-.config-strip select:focus{border-color:var(--green);box-shadow:0 0 8px var(--green-glow)}
-.config-strip select option{background:var(--surf2);color:var(--txt-hi)}
-.config-strip .sep{width:1px;height:28px;background:var(--border);align-self:center}
+    .config-strip {
+      background: var(--surf);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 28px;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
 
-/* ═══════════════════════════════════════════════
+    .config-strip label {
+      font-size: 10px;
+      color: var(--txt-dim);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 3px;
+      display: block
+    }
+
+    .config-strip input,
+    .config-strip select {
+      background: var(--surf2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--green);
+      font-family: var(--mono);
+      font-size: 13px;
+      padding: 6px 10px;
+      outline: none;
+      width: auto;
+      min-width: 100px;
+    }
+
+    .config-strip input:focus,
+    .config-strip select:focus {
+      border-color: var(--green);
+      box-shadow: 0 0 8px var(--green-glow)
+    }
+
+    .config-strip select option {
+      background: var(--surf2);
+      color: var(--txt-hi)
+    }
+
+    .config-strip .sep {
+      width: 1px;
+      height: 28px;
+      background: var(--border);
+      align-self: center
+    }
+
+    /* ═══════════════════════════════════════════════
    LAYOUT
    ═══════════════════════════════════════════════ */
-.wrapper{
-  display:grid;
-  grid-template-columns:1fr 340px;
-  gap:0;
-  min-height:calc(100vh - 88px);
-}
+    .wrapper {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 0;
+      min-height: calc(100vh - 88px);
+    }
 
-/* ─── Left: test panels ─── */
-.main-panel{
-  padding:24px;
-  overflow-y:auto;
-  border-right:1px solid var(--border);
-}
+    /* ─── Left: test panels ─── */
+    .main-panel {
+      padding: 24px;
+      overflow-y: auto;
+      border-right: 1px solid var(--border);
+    }
 
-/* ─── Right: live log ─── */
-.log-panel{
-  display:flex;flex-direction:column;
-  background:var(--surf);
-}
-.log-header{
-  padding:10px 16px;
-  border-bottom:1px solid var(--border);
-  font-size:10px;color:var(--txt-dim);text-transform:uppercase;letter-spacing:2px;
-  display:flex;justify-content:space-between;align-items:center;
-}
-.log-header button{
-  background:none;border:1px solid var(--border);color:var(--txt-dim);
-  font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:var(--radius);cursor:pointer;
-}
-.log-header button:hover{border-color:var(--red);color:var(--red)}
-.log-body{
-  flex:1;overflow-y:auto;padding:12px;
-  font-size:12px;line-height:1.8;
-}
-.log-entry{
-  border-bottom:1px solid var(--border);
-  padding:6px 0;
-  animation:fadeIn .25s ease;
-}
-.log-entry:last-child{border-bottom:none}
-@keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
-.log-entry .le-time{color:var(--txt-dim);font-size:11px;margin-right:8px}
-.log-entry .le-method{font-size:10px;padding:1px 7px;border-radius:2px;font-weight:bold;margin-right:6px}
-.le-method.get{background:rgba(57,255,133,.12);color:var(--green)}
-.le-method.post{background:rgba(240,192,64,.12);color:var(--amber)}
-.le-method.del{background:rgba(255,77,77,.12);color:var(--red)}
-.le-method.cgi{background:rgba(224,108,240,.12);color:var(--pink)}
-.le-method.sys{background:rgba(64,212,240,.12);color:var(--cyan)}
-.log-entry .le-url{color:var(--txt)}
-.log-entry .le-status{
-  float:right;font-size:10px;padding:1px 7px;border-radius:2px;
-}
-.le-status.ok{background:rgba(57,255,133,.1);color:var(--green)}
-.le-status.warn{background:rgba(240,192,64,.1);color:var(--amber)}
-.le-status.err{background:rgba(255,77,77,.1);color:var(--red)}
+    /* ─── Right: live log ─── */
+    .log-panel {
+      display: flex;
+      flex-direction: column;
+      background: var(--surf);
+    }
 
-/* ═══════════════════════════════════════════════
+    .log-header {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      font-size: 10px;
+      color: var(--txt-dim);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .log-header button {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--txt-dim);
+      font-family: var(--mono);
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: var(--radius);
+      cursor: pointer;
+    }
+
+    .log-header button:hover {
+      border-color: var(--red);
+      color: var(--red)
+    }
+
+    .log-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+      font-size: 12px;
+      line-height: 1.8;
+    }
+
+    .log-entry {
+      border-bottom: 1px solid var(--border);
+      padding: 6px 0;
+      animation: fadeIn .25s ease;
+    }
+
+    .log-entry:last-child {
+      border-bottom: none
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-4px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
+
+    .log-entry .le-time {
+      color: var(--txt-dim);
+      font-size: 11px;
+      margin-right: 8px
+    }
+
+    .log-entry .le-method {
+      font-size: 10px;
+      padding: 1px 7px;
+      border-radius: 2px;
+      font-weight: bold;
+      margin-right: 6px
+    }
+
+    .le-method.get {
+      background: rgba(57, 255, 133, .12);
+      color: var(--green)
+    }
+
+    .le-method.post {
+      background: rgba(240, 192, 64, .12);
+      color: var(--amber)
+    }
+
+    .le-method.del {
+      background: rgba(255, 77, 77, .12);
+      color: var(--red)
+    }
+
+    .le-method.cgi {
+      background: rgba(224, 108, 240, .12);
+      color: var(--pink)
+    }
+
+    .le-method.sys {
+      background: rgba(64, 212, 240, .12);
+      color: var(--cyan)
+    }
+
+    .log-entry .le-url {
+      color: var(--txt)
+    }
+
+    .log-entry .le-status {
+      float: right;
+      font-size: 10px;
+      padding: 1px 7px;
+      border-radius: 2px;
+    }
+
+    .le-status.ok {
+      background: rgba(57, 255, 133, .1);
+      color: var(--green)
+    }
+
+    .le-status.warn {
+      background: rgba(240, 192, 64, .1);
+      color: var(--amber)
+    }
+
+    .le-status.err {
+      background: rgba(255, 77, 77, .1);
+      color: var(--red)
+    }
+
+    /* ═══════════════════════════════════════════════
    SECTION CARDS
    ═══════════════════════════════════════════════ */
-.section{
-  background:var(--surf);
-  border:1px solid var(--border);
-  border-radius:6px;
-  margin-bottom:18px;
-  overflow:hidden;
-  transition:border-color .25s;
-}
-.section:hover{border-color:var(--border-hi)}
+    .section {
+      background: var(--surf);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      margin-bottom: 18px;
+      overflow: hidden;
+      transition: border-color .25s;
+    }
 
-/* top accent line via data-attr */
-.section[data-c="green"]{border-top:2px solid var(--green)}
-.section[data-c="amber"]{border-top:2px solid var(--amber)}
-.section[data-c="red"]{border-top:2px solid var(--red)}
-.section[data-c="cyan"]{border-top:2px solid var(--cyan)}
-.section[data-c="pink"]{border-top:2px solid var(--pink)}
+    .section:hover {
+      border-color: var(--border-hi)
+    }
 
-.sec-head{
-  display:flex;align-items:center;gap:10px;
-  padding:12px 18px 10px;
-  cursor:pointer;user-select:none;
-}
-.sec-head:hover .sec-title{color:#fff}
-.sec-badge{
-  font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;
-  padding:3px 9px;border-radius:2px;
-}
-.section[data-c="green"]  .sec-badge{background:rgba(57,255,133,.12);color:var(--green);border:1px solid rgba(57,255,133,.25)}
-.section[data-c="amber"]  .sec-badge{background:rgba(240,192,64,.12);color:var(--amber);border:1px solid rgba(240,192,64,.25)}
-.section[data-c="red"]    .sec-badge{background:rgba(255,77,77,.12);color:var(--red);border:1px solid rgba(255,77,77,.25)}
-.section[data-c="cyan"]   .sec-badge{background:rgba(64,212,240,.12);color:var(--cyan);border:1px solid rgba(64,212,240,.25)}
-.section[data-c="pink"]   .sec-badge{background:rgba(224,108,240,.12);color:var(--pink);border:1px solid rgba(224,108,240,.25)}
+    /* top accent line via data-attr */
+    .section[data-c="green"] {
+      border-top: 2px solid var(--green)
+    }
 
-.sec-title{color:var(--txt-hi);font-family:var(--orb);font-size:13px;font-weight:700;letter-spacing:1px}
-.sec-desc{color:var(--txt-dim);font-size:11px;margin-left:auto}
-.sec-arrow{color:var(--txt-dim);font-size:11px;transition:transform .2s}
-.section.collapsed .sec-arrow{transform:rotate(-90deg)}
-.section.collapsed .sec-body{display:none}
+    .section[data-c="amber"] {
+      border-top: 2px solid var(--amber)
+    }
 
-.sec-body{padding:0 18px 18px}
+    .section[data-c="red"] {
+      border-top: 2px solid var(--red)
+    }
 
-/* ─── Input groups ─── */
-.row{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-bottom:10px}
-.row label{font-size:10px;color:var(--txt-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;display:block}
-.field{flex:1;min-width:110px}
-.field.sm{flex:.5;min-width:70px}
-.field.xs{flex:.3;min-width:50px}
+    .section[data-c="cyan"] {
+      border-top: 2px solid var(--cyan)
+    }
 
-input[type="text"],input[type="number"],input[type="password"],textarea,select{
-  width:100%;background:var(--surf2);border:1px solid var(--border);border-radius:var(--radius);
-  color:var(--txt-hi);font-family:var(--mono);font-size:13px;
-  padding:7px 10px;outline:none;transition:border-color .2s,box-shadow .2s;
-}
-input:focus,textarea:focus,select:focus{border-color:var(--green);box-shadow:0 0 8px var(--green-glow)}
-textarea{resize:vertical;min-height:70px;color:var(--green);font-size:12px}
-select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='5'%3E%3Cpath d='M0 0l4.5 5L9 0z' fill='%233d4f66'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px}
-select option{background:var(--surf2)}
+    .section[data-c="pink"] {
+      border-top: 2px solid var(--pink)
+    }
 
-/* ─── Buttons ─── */
-.btn{
-  display:inline-flex;align-items:center;gap:5px;
-  font-family:var(--mono);font-size:12px;font-weight:bold;
-  padding:7px 16px;border-radius:var(--radius);
-  border:1px solid;cursor:pointer;
-  transition:all .18s;position:relative;overflow:hidden;
-}
-.btn:active{transform:scale(.96)}
-.btn::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.06),transparent);pointer-events:none}
+    .sec-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 18px 10px;
+      cursor: pointer;
+      user-select: none;
+    }
 
-.btn-green{color:var(--green);border-color:var(--green);background:rgba(57,255,133,.07)}
-.btn-green:hover{background:rgba(57,255,133,.15);box-shadow:0 0 10px var(--green-glow)}
-.btn-amber{color:var(--amber);border-color:var(--amber);background:rgba(240,192,64,.07)}
-.btn-amber:hover{background:rgba(240,192,64,.15);box-shadow:0 0 10px rgba(240,192,64,.18)}
-.btn-red{color:var(--red);border-color:var(--red);background:rgba(255,77,77,.07)}
-.btn-red:hover{background:rgba(255,77,77,.15);box-shadow:0 0 10px rgba(255,77,77,.18)}
-.btn-cyan{color:var(--cyan);border-color:var(--cyan);background:rgba(64,212,240,.07)}
-.btn-cyan:hover{background:rgba(64,212,240,.15);box-shadow:0 0 10px rgba(64,212,240,.18)}
-.btn-pink{color:var(--pink);border-color:var(--pink);background:rgba(224,108,240,.07)}
-.btn-pink:hover{background:rgba(224,108,240,.15);box-shadow:0 0 10px rgba(224,108,240,.18)}
-.btn-sm{font-size:10px;padding:4px 10px}
+    .sec-head:hover .sec-title {
+      color: #fff
+    }
 
-.btn-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:4px}
+    .sec-badge {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 3px 9px;
+      border-radius: 2px;
+    }
 
-/* ─── Inline note ─── */
-.note{
-  font-size:11px;color:var(--txt-dim);
-  background:rgba(255,255,255,.02);border:1px solid var(--border);
-  border-radius:var(--radius);padding:7px 10px;margin-bottom:10px;
-}
-.note code{color:var(--cyan);background:rgba(64,212,240,.08);padding:1px 5px;border-radius:2px;font-size:11px}
+    .section[data-c="green"] .sec-badge {
+      background: rgba(57, 255, 133, .12);
+      color: var(--green);
+      border: 1px solid rgba(57, 255, 133, .25)
+    }
 
-/* ─── Response terminal ─── */
-.resp{
-  margin-top:12px;background:#060809;border:1px solid var(--border);border-radius:var(--radius);
-  overflow:hidden;animation:fadeIn .25s ease;
-}
-.resp-bar{
-  display:flex;align-items:center;gap:8px;padding:6px 12px;
-  background:var(--surf2);border-bottom:1px solid var(--border);
-  font-size:10px;color:var(--txt-dim);
-}
-.dots{display:flex;gap:5px}
-.dots span{width:9px;height:9px;border-radius:50%;background:#2a2a2a}
-.dots span:nth-child(1){background:#ff5f57}
-.dots span:nth-child(2){background:#febc2e}
-.dots span:nth-child(3){background:#28ca41}
-.chip{
-  font-size:9px;padding:1px 7px;border-radius:2px;margin-left:auto;
-}
-.chip.ok{background:rgba(57,255,133,.12);color:var(--green)}
-.chip.redir{background:rgba(240,192,64,.12);color:var(--amber)}
-.chip.err{background:rgba(255,77,77,.12);color:var(--red)}
+    .section[data-c="amber"] .sec-badge {
+      background: rgba(240, 192, 64, .12);
+      color: var(--amber);
+      border: 1px solid rgba(240, 192, 64, .25)
+    }
 
-.resp-body{
-  padding:12px 14px;font-size:12px;white-space:pre-wrap;
-  word-break:break-all;max-height:200px;overflow-y:auto;
-  color:var(--txt);line-height:1.7;
-}
-.k{color:var(--green)}
-.v{color:var(--amber)}
-.e{color:var(--red)}
-.i{color:var(--cyan)}
-.d{color:var(--txt-dim)}
+    .section[data-c="red"] .sec-badge {
+      background: rgba(255, 77, 77, .12);
+      color: var(--red);
+      border: 1px solid rgba(255, 77, 77, .25)
+    }
 
-/* ─── Dropzone ─── */
-.dropzone{
-  border:2px dashed var(--border);border-radius:var(--radius);
-  padding:22px;text-align:center;cursor:pointer;
-  transition:all .25s;margin-bottom:10px;
-}
-.dropzone:hover,.dropzone.over{border-color:var(--amber);background:rgba(240,192,64,.04)}
-.dropzone input[type="file"]{display:none}
-.dropzone .dz-txt{color:var(--txt-dim);font-size:12px}
-.dropzone .dz-txt strong{color:var(--amber)}
-.dropzone .dz-sub{color:var(--txt-dim);font-size:10px;margin-top:4px}
+    .section[data-c="cyan"] .sec-badge {
+      background: rgba(64, 212, 240, .12);
+      color: var(--cyan);
+      border: 1px solid rgba(64, 212, 240, .25)
+    }
 
-/* ─── File chip row ─── */
-.fchip{
-  display:inline-flex;align-items:center;gap:6px;
-  background:var(--surf2);border:1px solid var(--border);border-radius:var(--radius);
-  padding:4px 8px;font-size:11px;color:var(--txt-hi);margin:2px;
-}
-.fchip .fx{cursor:pointer;color:var(--red);margin-left:4px}
-.fchip .fx:hover{opacity:.7}
+    .section[data-c="pink"] .sec-badge {
+      background: rgba(224, 108, 240, .12);
+      color: var(--pink);
+      border: 1px solid rgba(224, 108, 240, .25)
+    }
 
-/* ─── CGI env table ─── */
-.env-table{width:100%;border-collapse:collapse;margin-top:8px;font-size:11px}
-.env-table td{padding:4px 8px;border-bottom:1px solid var(--border)}
-.env-table td:first-child{color:var(--cyan);width:38%;font-size:10px;letter-spacing:.5px}
-.env-table td:last-child{color:var(--green)}
-.env-table input{
-  width:100%;background:transparent;border:none;border-bottom:1px solid transparent;
-  color:var(--green);font-family:var(--mono);font-size:12px;padding:2px 0;outline:none;
-}
-.env-table input:focus{border-bottom-color:var(--green)}
+    .sec-title {
+      color: var(--txt-hi);
+      font-family: var(--orb);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1px
+    }
 
-/* ─── Redirect chips ─── */
-.rchips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
-.rchip{
-  font-size:11px;padding:4px 10px;border-radius:var(--radius);
-  background:rgba(224,108,240,.07);border:1px solid rgba(224,108,240,.2);
-  color:var(--pink);cursor:pointer;transition:all .2s;
-}
-.rchip:hover{background:rgba(224,108,240,.16);box-shadow:0 0 8px rgba(224,108,240,.2)}
+    .sec-desc {
+      color: var(--txt-dim);
+      font-size: 11px;
+      margin-left: auto
+    }
 
-/* ─── Error page preview grid ─── */
-.err-grid{display:flex;gap:8px;flex-wrap:wrap}
-.err-card{
-  flex:1;min-width:90px;max-width:120px;
-  background:var(--surf2);border:1px solid var(--border);border-radius:var(--radius);
-  padding:10px 8px;text-align:center;cursor:pointer;transition:all .2s;
-}
-.err-card:hover{border-color:var(--red);background:rgba(255,77,77,.06)}
-.err-card .ec-code{font-family:var(--orb);font-size:18px;font-weight:700;color:var(--red)}
-.err-card .ec-label{font-size:10px;color:var(--txt-dim);margin-top:2px}
+    .sec-arrow {
+      color: var(--txt-dim);
+      font-size: 11px;
+      transition: transform .2s
+    }
 
-/* ─── Autoindex mock ─── */
-.autoindex-mock{
-  background:var(--surf2);border:1px solid var(--border);border-radius:var(--radius);
-  overflow:hidden;margin-top:8px;
-}
-.ai-head{
-  background:var(--surf);padding:8px 14px;border-bottom:1px solid var(--border);
-  font-size:11px;color:var(--txt-dim);
-  display:flex;align-items:center;gap:8px;
-}
-.ai-head .dots span{width:8px;height:8px}
-.ai-row{
-  display:flex;align-items:center;padding:6px 14px;
-  border-bottom:1px solid var(--border);font-size:12px;
-  transition:background .15s;cursor:pointer;
-}
-.ai-row:hover{background:rgba(57,255,133,.04)}
-.ai-row:last-child{border-bottom:none}
-.ai-icon{margin-right:10px;font-size:14px}
-.ai-name{color:var(--green);flex:1}
-.ai-meta{color:var(--txt-dim);font-size:10px;text-align:right}
+    .section.collapsed .sec-arrow {
+      transform: rotate(-90deg)
+    }
 
-/* ─── Scrollbar ─── */
-::-webkit-scrollbar{width:5px}
-::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+    .section.collapsed .sec-body {
+      display: none
+    }
 
-/* ═══════════════════════════════════════════════
+    .sec-body {
+      padding: 0 18px 18px
+    }
+
+    /* ─── Input groups ─── */
+    .row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      margin-bottom: 10px
+    }
+
+    .row label {
+      font-size: 10px;
+      color: var(--txt-dim);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+      display: block
+    }
+
+    .field {
+      flex: 1;
+      min-width: 110px
+    }
+
+    .field.sm {
+      flex: .5;
+      min-width: 70px
+    }
+
+    .field.xs {
+      flex: .3;
+      min-width: 50px
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="password"],
+    textarea,
+    select {
+      width: 100%;
+      background: var(--surf2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--txt-hi);
+      font-family: var(--mono);
+      font-size: 13px;
+      padding: 7px 10px;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      border-color: var(--green);
+      box-shadow: 0 0 8px var(--green-glow)
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 70px;
+      color: var(--green);
+      font-size: 12px
+    }
+
+    select {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='5'%3E%3Cpath d='M0 0l4.5 5L9 0z' fill='%233d4f66'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      padding-right: 28px
+    }
+
+    select option {
+      background: var(--surf2)
+    }
+
+    /* ─── Buttons ─── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: bold;
+      padding: 7px 16px;
+      border-radius: var(--radius);
+      border: 1px solid;
+      cursor: pointer;
+      transition: all .18s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn:active {
+      transform: scale(.96)
+    }
+
+    .btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255, 255, 255, .06), transparent);
+      pointer-events: none
+    }
+
+    .btn-green {
+      color: var(--green);
+      border-color: var(--green);
+      background: rgba(57, 255, 133, .07)
+    }
+
+    .btn-green:hover {
+      background: rgba(57, 255, 133, .15);
+      box-shadow: 0 0 10px var(--green-glow)
+    }
+
+    .btn-amber {
+      color: var(--amber);
+      border-color: var(--amber);
+      background: rgba(240, 192, 64, .07)
+    }
+
+    .btn-amber:hover {
+      background: rgba(240, 192, 64, .15);
+      box-shadow: 0 0 10px rgba(240, 192, 64, .18)
+    }
+
+    .btn-red {
+      color: var(--red);
+      border-color: var(--red);
+      background: rgba(255, 77, 77, .07)
+    }
+
+    .btn-red:hover {
+      background: rgba(255, 77, 77, .15);
+      box-shadow: 0 0 10px rgba(255, 77, 77, .18)
+    }
+
+    .btn-cyan {
+      color: var(--cyan);
+      border-color: var(--cyan);
+      background: rgba(64, 212, 240, .07)
+    }
+
+    .btn-cyan:hover {
+      background: rgba(64, 212, 240, .15);
+      box-shadow: 0 0 10px rgba(64, 212, 240, .18)
+    }
+
+    .btn-pink {
+      color: var(--pink);
+      border-color: var(--pink);
+      background: rgba(224, 108, 240, .07)
+    }
+
+    .btn-pink:hover {
+      background: rgba(224, 108, 240, .15);
+      box-shadow: 0 0 10px rgba(224, 108, 240, .18)
+    }
+
+    .btn-sm {
+      font-size: 10px;
+      padding: 4px 10px
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-top: 4px
+    }
+
+    /* ─── Inline note ─── */
+    .note {
+      font-size: 11px;
+      color: var(--txt-dim);
+      background: rgba(255, 255, 255, .02);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 7px 10px;
+      margin-bottom: 10px;
+    }
+
+    .note code {
+      color: var(--cyan);
+      background: rgba(64, 212, 240, .08);
+      padding: 1px 5px;
+      border-radius: 2px;
+      font-size: 11px
+    }
+
+    /* ─── Response terminal ─── */
+    .resp {
+      margin-top: 12px;
+      background: #060809;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      animation: fadeIn .25s ease;
+    }
+
+    .resp-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      background: var(--surf2);
+      border-bottom: 1px solid var(--border);
+      font-size: 10px;
+      color: var(--txt-dim);
+    }
+
+    .dots {
+      display: flex;
+      gap: 5px
+    }
+
+    .dots span {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #2a2a2a
+    }
+
+    .dots span:nth-child(1) {
+      background: #ff5f57
+    }
+
+    .dots span:nth-child(2) {
+      background: #febc2e
+    }
+
+    .dots span:nth-child(3) {
+      background: #28ca41
+    }
+
+    .chip {
+      font-size: 9px;
+      padding: 1px 7px;
+      border-radius: 2px;
+      margin-left: auto;
+    }
+
+    .chip.ok {
+      background: rgba(57, 255, 133, .12);
+      color: var(--green)
+    }
+
+    .chip.redir {
+      background: rgba(240, 192, 64, .12);
+      color: var(--amber)
+    }
+
+    .chip.err {
+      background: rgba(255, 77, 77, .12);
+      color: var(--red)
+    }
+
+    .resp-body {
+      padding: 12px 14px;
+      font-size: 12px;
+      white-space: pre-wrap;
+      word-break: break-all;
+      max-height: 200px;
+      overflow-y: auto;
+      color: var(--txt);
+      line-height: 1.7;
+    }
+
+    .k {
+      color: var(--green)
+    }
+
+    .v {
+      color: var(--amber)
+    }
+
+    .e {
+      color: var(--red)
+    }
+
+    .i {
+      color: var(--cyan)
+    }
+
+    .d {
+      color: var(--txt-dim)
+    }
+
+    /* ─── Dropzone ─── */
+    .dropzone {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 22px;
+      text-align: center;
+      cursor: pointer;
+      transition: all .25s;
+      margin-bottom: 10px;
+    }
+
+    .dropzone:hover,
+    .dropzone.over {
+      border-color: var(--amber);
+      background: rgba(240, 192, 64, .04)
+    }
+
+    .dropzone input[type="file"] {
+      display: none
+    }
+
+    .dropzone .dz-txt {
+      color: var(--txt-dim);
+      font-size: 12px
+    }
+
+    .dropzone .dz-txt strong {
+      color: var(--amber)
+    }
+
+    .dropzone .dz-sub {
+      color: var(--txt-dim);
+      font-size: 10px;
+      margin-top: 4px
+    }
+
+    /* ─── File chip row ─── */
+    .fchip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--surf2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 4px 8px;
+      font-size: 11px;
+      color: var(--txt-hi);
+      margin: 2px;
+    }
+
+    .fchip .fx {
+      cursor: pointer;
+      color: var(--red);
+      margin-left: 4px
+    }
+
+    .fchip .fx:hover {
+      opacity: .7
+    }
+
+    /* ─── CGI env table ─── */
+    .env-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+      font-size: 11px
+    }
+
+    .env-table td {
+      padding: 4px 8px;
+      border-bottom: 1px solid var(--border)
+    }
+
+    .env-table td:first-child {
+      color: var(--cyan);
+      width: 38%;
+      font-size: 10px;
+      letter-spacing: .5px
+    }
+
+    .env-table td:last-child {
+      color: var(--green)
+    }
+
+    .env-table input {
+      width: 100%;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid transparent;
+      color: var(--green);
+      font-family: var(--mono);
+      font-size: 12px;
+      padding: 2px 0;
+      outline: none;
+    }
+
+    .env-table input:focus {
+      border-bottom-color: var(--green)
+    }
+
+    /* ─── Redirect chips ─── */
+    .rchips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 10px
+    }
+
+    .rchip {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: var(--radius);
+      background: rgba(224, 108, 240, .07);
+      border: 1px solid rgba(224, 108, 240, .2);
+      color: var(--pink);
+      cursor: pointer;
+      transition: all .2s;
+    }
+
+    .rchip:hover {
+      background: rgba(224, 108, 240, .16);
+      box-shadow: 0 0 8px rgba(224, 108, 240, .2)
+    }
+
+    /* ─── Error page preview grid ─── */
+    .err-grid {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap
+    }
+
+    .err-card {
+      flex: 1;
+      min-width: 90px;
+      max-width: 120px;
+      background: var(--surf2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 8px;
+      text-align: center;
+      cursor: pointer;
+      transition: all .2s;
+    }
+
+    .err-card:hover {
+      border-color: var(--red);
+      background: rgba(255, 77, 77, .06)
+    }
+
+    .err-card .ec-code {
+      font-family: var(--orb);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--red)
+    }
+
+    .err-card .ec-label {
+      font-size: 10px;
+      color: var(--txt-dim);
+      margin-top: 2px
+    }
+
+    /* ─── Autoindex mock ─── */
+    .autoindex-mock {
+      background: var(--surf2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-top: 8px;
+    }
+
+    .ai-head {
+      background: var(--surf);
+      padding: 8px 14px;
+      border-bottom: 1px solid var(--border);
+      font-size: 11px;
+      color: var(--txt-dim);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .ai-head .dots span {
+      width: 8px;
+      height: 8px
+    }
+
+    .ai-row {
+      display: flex;
+      align-items: center;
+      padding: 6px 14px;
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+      transition: background .15s;
+      cursor: pointer;
+    }
+
+    .ai-row:hover {
+      background: rgba(57, 255, 133, .04)
+    }
+
+    .ai-row:last-child {
+      border-bottom: none
+    }
+
+    .ai-icon {
+      margin-right: 10px;
+      font-size: 14px
+    }
+
+    .ai-name {
+      color: var(--green);
+      flex: 1
+    }
+
+    .ai-meta {
+      color: var(--txt-dim);
+      font-size: 10px;
+      text-align: right
+    }
+
+    /* ─── Scrollbar ─── */
+    ::-webkit-scrollbar {
+      width: 5px
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 3px
+    }
+
+    /* ═══════════════════════════════════════════════
    RESPONSIVE
    ═══════════════════════════════════════════════ */
-@media(max-width:860px){
-  .wrapper{grid-template-columns:1fr}
-  .log-panel{position:fixed;bottom:0;left:0;right:0;height:180px;border-top:1px solid var(--border);z-index:50;background:var(--surf)}
-  .main-panel{padding-bottom:200px}
-  .topbar{flex-wrap:wrap;gap:8px}
-}
-</style>
+    @media(max-width:860px) {
+      .wrapper {
+        grid-template-columns: 1fr
+      }
+
+      .log-panel {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 180px;
+        border-top: 1px solid var(--border);
+        z-index: 50;
+        background: var(--surf)
+      }
+
+      .main-panel {
+        padding-bottom: 200px
+      }
+
+      .topbar {
+        flex-wrap: wrap;
+        gap: 8px
+      }
+    }
+  </style>
 </head>
+
 <body>
 
-<!-- ═══════ TOP BAR ═══════ -->
-<header class="topbar">
-  <div class="topbar-left">
-    <div class="logo">WEBSERV <span>42 TESTER</span></div>
-    <nav class="nav-tabs">
-      <a href="#s-get">GET</a>
-      <a href="#s-post">POST</a>
-      <a href="#s-del">DELETE</a>
-      <a href="#s-upload">UPLOAD</a>
-      <a href="#s-cgi">CGI</a>
-      <a href="#s-redir">REDIR</a>
-      <a href="#s-autoindex">AUTOINDEX</a>
-      <a href="#s-errors">ERRORS</a>
-    </nav>
-  </div>
-  <div class="server-badge"><span class="dot"></span> localhost</div>
-</header>
+  <!-- ═══════ TOP BAR ═══════ -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <div class="logo">WEBSERV <span>42 TESTER</span></div>
+      <nav class="nav-tabs">
+        <a href="#s-get">GET</a>
+        <a href="#s-post">POST</a>
+        <a href="#s-del">DELETE</a>
+        <a href="#s-upload">UPLOAD</a>
+        <a href="#s-cgi">CGI</a>
+        <a href="#s-redir">REDIR</a>
+        <a href="#s-autoindex">AUTOINDEX</a>
+        <a href="#s-errors">ERRORS</a>
+      </nav>
+    </div>
+    <div class="server-badge"><span class="dot"></span> localhost</div>
+  </header>
 
-<!-- ═══════ CONFIG STRIP ═══════ -->
-<div class="config-strip">
-  <div>
-    <label>Host</label>
-    <input type="text" id="cfg-host" value="localhost" style="width:130px"/>
+  <!-- ═══════ CONFIG STRIP ═══════ -->
+  <div class="config-strip">
+    <div>
+      <label>Host</label>
+      <input type="text" id="cfg-host" value="localhost" style="width:130px" />
+    </div>
+    <div>
+      <label>Port</label>
+      <select id="cfg-port">
+        <option value="8080">8080</option>
+        <option value="80">80</option>
+        <option value="8000">8000</option>
+        <option value="4242">4242</option>
+        <option value="custom">custom…</option>
+      </select>
+    </div>
+    <input type="text" id="cfg-port-custom" value="" placeholder="port" style="width:60px;display:none" />
+    <div class="sep"></div>
+    <div>
+      <label>Protocol</label>
+      <select id="cfg-proto">
+        <option value="http">http://</option>
+        <option value="https">https://</option>
+      </select>
+    </div>
+    <div>
+      <label>server_name</label>
+      <input type="text" id="cfg-srvname" value="" placeholder="optional" style="width:160px" />
+    </div>
+    <div class="sep"></div>
+    <div style="margin-left:auto">
+      <label style="display:block">&nbsp;</label>
+      <span style="font-size:10px;color:var(--txt-dim)">Base URL: </span><span id="base-url-display"
+        style="color:var(--green);font-size:12px">http://localhost:8080</span>
+    </div>
   </div>
-  <div>
-    <label>Port</label>
-    <select id="cfg-port">
-      <option value="8080">8080</option>
-      <option value="80">80</option>
-      <option value="8000">8000</option>
-      <option value="4242">4242</option>
-      <option value="custom">custom…</option>
-    </select>
-  </div>
-  <input type="text" id="cfg-port-custom" value="" placeholder="port" style="width:60px;display:none"/>
-  <div class="sep"></div>
-  <div>
-    <label>Protocol</label>
-    <select id="cfg-proto">
-      <option value="http">http://</option>
-      <option value="https">https://</option>
-    </select>
-  </div>
-  <div>
-    <label>server_name</label>
-    <input type="text" id="cfg-srvname" value="" placeholder="optional" style="width:160px"/>
-  </div>
-  <div class="sep"></div>
-  <div style="margin-left:auto">
-    <label style="display:block">&nbsp;</label>
-    <span style="font-size:10px;color:var(--txt-dim)">Base URL: </span><span id="base-url-display" style="color:var(--green);font-size:12px">http://localhost:8080</span>
-  </div>
-</div>
 
-<!-- ═══════ MAIN LAYOUT ═══════ -->
-<div class="wrapper">
+  <!-- ═══════ MAIN LAYOUT ═══════ -->
+  <div class="wrapper">
 
-<!-- ─── LEFT: PANELS ─── -->
-<div class="main-panel">
+    <!-- ─── LEFT: PANELS ─── -->
+    <div class="main-panel">
 
-<!-- ─────────── GET ─────────── -->
-<div class="section" data-c="green" id="s-get">
-  <div class="sec-head" onclick="toggle(this)">
-    <span class="sec-badge">GET</span>
-    <span class="sec-title">GET Request</span>
-    <span class="sec-desc">Retrieve resources</span>
-    <span class="sec-arrow">▼</span>
-  </div>
-  <div class="sec-body">
-    <div class="note">Tests basic <code>GET</code> retrieval. The path is appended to your configured base URL. Leave path as <code>/</code> to test <code>index_file</code> resolution.</div>
-    <div class="row">
-      <div class="field"><label>Path</label><input type="text" id="get-path" value="/"/></div>
-      <div class="field sm"><label>HTTP Version</label>
-        <select id="get-ver"><option value="1.1">HTTP/1.1</option><option value="1.0">HTTP/1.0</option></select>
+      <!-- ─────────── GET ─────────── -->
+      <div class="section" data-c="green" id="s-get">
+        <div class="sec-head" onclick="toggle(this)">
+          <span class="sec-badge">GET</span>
+          <span class="sec-title">GET Request</span>
+          <span class="sec-desc">Retrieve resources</span>
+          <span class="sec-arrow">▼</span>
+        </div>
+        <div class="sec-body">
+          <div class="note">Tests basic <code>GET</code> retrieval. The path is appended to your configured base URL.
+            Leave path as <code>/</code> to test <code>index_file</code> resolution.</div>
+          <div class="row">
+            <div class="field"><label>Path</label><input type="text" id="get-path" value="/" /></div>
+            <div class="field sm"><label>HTTP Version</label>
+              <select id="get-ver">
+                <option value="1.1">HTTP/1.1</option>
+                <option value="1.0">HTTP/1.0</option>
+              </select>
+            </div>
+          </div>
+          <div class="row">
+            <div class="field"><label>Query String (key=value&…)</label><input type="text" id="get-qs"
+                placeholder="page=1&amp;limit=10" /></div>
+          </div>
+          <div class="row">
+            <div class="field"><label>Extra Header (name: value)</label><input type="text" id="get-header"
+                placeholder="Accept: text/html" /></div>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-green" onclick="execGET()">▶ Send GET</button>
+            <button class="btn btn-green" onclick="previewGET()">👁 Preview</button>
+            <button class="btn btn-green btn-sm" onclick="clearResp('get-resp')">↺ Clear</button>
+          </div>
+          <div id="get-resp"></div>
+        </div>
       </div>
-    </div>
-    <div class="row">
-      <div class="field"><label>Query String (key=value&…)</label><input type="text" id="get-qs" placeholder="page=1&amp;limit=10"/></div>
-    </div>
-    <div class="row">
-      <div class="field"><label>Extra Header (name: value)</label><input type="text" id="get-header" placeholder="Accept: text/html"/></div>
-    </div>
-    <div class="btn-row">
-      <button class="btn btn-green" onclick="execGET()">▶ Send GET</button>
-      <button class="btn btn-green" onclick="previewGET()">👁 Preview</button>
-      <button class="btn btn-green btn-sm" onclick="clearResp('get-resp')">↺ Clear</button>
-    </div>
-    <div id="get-resp"></div>
-  </div>
-</div>
 
-<!-- ─────────── POST ─────────── -->
-<div class="section" data-c="amber" id="s-post">
-  <div class="sec-head" onclick="toggle(this)">
-    <span class="sec-badge">POST</span>
-    <span class="sec-title">POST Request</span>
-    <span class="sec-desc">Send body data</span>
-    <span class="sec-arrow">▼</span>
-  </div>
-  <div class="sec-body">
-    <div class="note">Tests <code>POST</code> body parsing. Set <code>Content-Type</code> and body. Useful for testing CGI stdin and form handling.</div>
-    <div class="row">
-      <div class="field"><label>Path</label><input type="text" id="post-path" value="/cgi-bin/handler.py"/></div>
-      <div class="field sm"><label>Content-Type</label>
-        <select id="post-ctype">
-          <option value="application/x-www-form-urlencoded">application/x-www-form-urlencoded</option>
-          <option value="application/json">application/json</option>
-          <option value="text/plain">text/plain</option>
-        </select>
+      <!-- ─────────── POST ─────────── -->
+      <div class="section" data-c="amber" id="s-post">
+        <div class="sec-head" onclick="toggle(this)">
+          <span class="sec-badge">POST</span>
+          <span class="sec-title">POST Request</span>
+          <span class="sec-desc">Send body data</span>
+          <span class="sec-arrow">▼</span>
+        </div>
+        <div class="sec-body">
+          <div class="note">Tests <code>POST</code> body parsing. Set <code>Content-Type</code> and body. Useful for
+            testing CGI stdin and form handling.</div>
+          <div class="row">
+            <div class="field"><label>Path</label><input type="text" id="post-path" value="/cgi-bin/handler.py" /></div>
+            <div class="field sm"><label>Content-Type</label>
+              <select id="post-ctype">
+                <option value="application/x-www-form-urlencoded">application/x-www-form-urlencoded</option>
+                <option value="application/json">application/json</option>
+                <option value="text/plain">text/plain</option>
+              </select>
+            </div>
+          </div>
+          <div class="row">
+            <div class="field"><label>Body</label>
+              <textarea id="post-body">username=student&password=42</textarea>
+            </div>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-amber" onclick="execPOST()">▶ Send POST</button>
+            <button class="btn btn-amber btn-sm" onclick="clearResp('post-resp')">↺ Clear</button>
+          </div>
+          <div id="post-resp"></div>
+        </div>
       </div>
-    </div>
-    <div class="row">
-      <div class="field"><label>Body</label>
-        <textarea id="post-body">username=student&password=42</textarea>
+
+      <!-- ─────────── DELETE ─────────── -->
+      <div class="section" data-c="red" id="s-del">
+        <div class="sec-head" onclick="toggle(this)">
+          <span class="sec-badge">DELETE</span>
+          <span class="sec-title">DELETE Request</span>
+          <span class="sec-desc">Remove resources</span>
+          <span class="sec-arrow">▼</span>
+        </div>
+        <div class="sec-body">
+          <div class="note">Tests <code>DELETE</code> method handling. Many webserv configs must return
+            <code>405 Method Not Allowed</code> if the method is not enabled for a location.</div>
+          <div class="row">
+            <div class="field"><label>Path</label><input type="text" id="del-path" value="/uploads/test.txt" /></div>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-red" onclick="execDELETE()">🗑 Send DELETE</button>
+            <button class="btn btn-red btn-sm" onclick="clearResp('del-resp')">↺ Clear</button>
+          </div>
+          <div id="del-resp"></div>
+        </div>
       </div>
-    </div>
-    <div class="btn-row">
-      <button class="btn btn-amber" onclick="execPOST()">▶ Send POST</button>
-      <button class="btn btn-amber btn-sm" onclick="clearResp('post-resp')">↺ Clear</button>
-    </div>
-    <div id="post-resp"></div>
-  </div>
-</div>
 
-<!-- ─────────── DELETE ─────────── -->
-<div class="section" data-c="red" id="s-del">
-  <div class="sec-head" onclick="toggle(this)">
-    <span class="sec-badge">DELETE</span>
-    <span class="sec-title">DELETE Request</span>
-    <span class="sec-desc">Remove resources</span>
-    <span class="sec-arrow">▼</span>
-  </div>
-  <div class="sec-body">
-    <div class="note">Tests <code>DELETE</code> method handling. Many webserv configs must return <code>405 Method Not Allowed</code> if the method is not enabled for a location.</div>
-    <div class="row">
-      <div class="field"><label>Path</label><input type="text" id="del-path" value="/uploads/test.txt"/></div>
-    </div>
-    <div class="btn-row">
-      <button class="btn btn-red" onclick="execDELETE()">🗑 Send DELETE</button>
-      <button class="btn btn-red btn-sm" onclick="clearResp('del-resp')">↺ Clear</button>
-    </div>
-    <div id="del-resp"></div>
-  </div>
-</div>
-
-<!-- ─────────── FILE UPLOAD ─────────── -->
-<div class="section" data-c="amber" id="s-upload">
-  <div class="sec-head" onclick="toggle(this)">
-    <span class="sec-badge">UPLOAD</span>
-    <span class="sec-title">File Upload</span>
-    <span class="sec-desc">multipart/form-data + limit_client_body_size</span>
-    <span class="sec-arrow">▼</span>
-  </div>
-  <div class="sec-body">
-    <div class="note">Tests <code>upload_store</code> and <code>client_max_body_size</code>. Files over the configured limit should return <code>413 Payload Too Large</code>.</div>
-    <div class="row">
-      <div class="field"><label>Upload Path (upload_store location)</label><input type="text" id="upload-path" value="/uploads"/></div>
-      <div class="field sm"><label>Max Body Size</label>
-        <select id="upload-maxsize">
-          <option value="1048576">1 MB</option>
-          <option value="5242880">5 MB</option>
-          <option value="10485760">10 MB</option>
-          <option value="52428800">50 MB</option>
-        </select>
+      <!-- ─────────── FILE UPLOAD ─────────── -->
+      <div class="section" data-c="amber" id="s-upload">
+        <div class="sec-head" onclick="toggle(this)">
+          <span class="sec-badge">UPLOAD</span>
+          <span class="sec-title">File Upload</span>
+          <span class="sec-desc">multipart/form-data + limit_client_body_size</span>
+          <span class="sec-arrow">▼</span>
+        </div>
+        <div class="sec-body">
+          <div class="note">Tests <code>upload_store</code> and <code>client_max_body_size</code>. Files over the
+            configured limit should return <code>413 Payload Too Large</code>.</div>
+          <div class="row">
+            <div class="field"><label>Upload Path (upload_store location)</label><input type="text" id="upload-path"
+                value="/uploads" /></div>
+            <div class="field sm"><label>Max Body Size</label>
+              <select id="upload-maxsize">
+                <option value="1048576">1 MB</option>
+                <option value="5242880">5 MB</option>
+                <option value="10485760">10 MB</option>
+                <option value="52428800">50 MB</option>
+              </select>
+            </div>
+          </div>
+          <div class="dropzone" id="dz" onclick="document.getElementById('file-in').click()">
+            <div class="dz-txt">📂 Drag &amp; drop files here or <strong>click to browse</strong></div>
+            <div class="dz-sub">Simulates POST multipart/form-data to your webserv</div>
+            <input type="file" id="file-in" multiple />
+          </div>
+          <div id="fchips"></div>
+          <div class="btn-row">
+            <button class="btn btn-amber" id="up-btn" disabled onclick="console.log('BUTTON CLICKED'); doUpload()">⬆
+              Upload (POST multipart)</button>
+            <button class="btn btn-amber btn-sm"
+              onclick="console.log('TEST BUTTON WORKS'); alert('Test button clicked!')">🧪 Test Click</button>
+            <button class="btn btn-amber btn-sm" onclick="clearUpload()">✕ Clear</button>
+          </div>
+          <div id="upload-resp"></div>
+        </div>
       </div>
-    </div>
-    <div class="dropzone" id="dz" onclick="document.getElementById('file-in').click()">
-      <div class="dz-txt">📂 Drag &amp; drop files here or <strong>click to browse</strong></div>
-      <div class="dz-sub">Simulates POST multipart/form-data to your webserv</div>
-      <input type="file" id="file-in" multiple/>
-    </div>
-    <div id="fchips"></div>
-    <div class="btn-row">
-      <button class="btn btn-amber" id="up-btn" disabled onclick="doUpload()">⬆ Upload (POST multipart)</button>
-      <button class="btn btn-amber btn-sm" onclick="clearUpload()">✕ Clear</button>
-    </div>
-    <div id="upload-resp"></div>
-  </div>
-</div>
 
-<!-- ─────────── CGI ─────────── -->
-<div class="section" data-c="pink" id="s-cgi">
-  <div class="sec-head" onclick="toggle(this)">
-    <span class="sec-badge">CGI</span>
-    <span class="sec-title">CGI Execution</span>
-    <span class="sec-desc">PATH_INFO · QUERY_STRING · env vars</span>
-    <span class="sec-arrow">▼</span>
-  </div>
-  <div class="sec-body">
-    <div class="note">Tests CGI script invocation. Your webserv must set <code>PATH_INFO</code>, <code>QUERY_STRING</code>, <code>REQUEST_METHOD</code>, <code>SCRIPT_NAME</code>, <code>SERVER_NAME</code>, <code>SERVER_PORT</code>, <code>CONTENT_TYPE</code>, <code>CONTENT_LENGTH</code> and pipe stdin for POST.</div>
-    <div class="row">
-      <div class="field"><label>CGI Script Path</label><input type="text" id="cgi-path" value="/cgi-bin/test.py"/></div>
-    </div>
-    <div class="row">
-      <div class="field"><label>PATH_INFO</label><input type="text" id="cgi-pathinfo" value="/extra/info"/></div>
-      <div class="field"><label>QUERY_STRING</label><input type="text" id="cgi-qs" value="name=42&lang=en"/></div>
-    </div>
-    <div class="row">
-      <div class="field sm"><label>Method</label>
-        <select id="cgi-method"><option value="GET">GET</option><option value="POST">POST</option></select>
+      <!-- ─────────── CGI ─────────── -->
+      <div class="section" data-c="pink" id="s-cgi">
+        <div class="sec-head" onclick="toggle(this)">
+          <span class="sec-badge">CGI</span>
+          <span class="sec-title">CGI Execution</span>
+          <span class="sec-desc">PATH_INFO · QUERY_STRING · env vars</span>
+          <span class="sec-arrow">▼</span>
+        </div>
+        <div class="sec-body">
+          <div class="note">Tests CGI script invocation. Your webserv must set <code>PATH_INFO</code>,
+            <code>QUERY_STRING</code>, <code>REQUEST_METHOD</code>, <code>SCRIPT_NAME</code>, <code>SERVER_NAME</code>,
+            <code>SERVER_PORT</code>, <code>CONTENT_TYPE</code>, <code>CONTENT_LENGTH</code> and pipe stdin for POST.
+          </div>
+          <div class="row">
+            <div class="field"><label>CGI Script Path</label><input type="text" id="cgi-path"
+                value="/cgi-bin/test.py" /></div>
+          </div>
+          <div class="row">
+            <div class="field"><label>PATH_INFO</label><input type="text" id="cgi-pathinfo" value="/extra/info" /></div>
+            <div class="field"><label>QUERY_STRING</label><input type="text" id="cgi-qs" value="name=42&lang=en" />
+            </div>
+          </div>
+          <div class="row">
+            <div class="field sm"><label>Method</label>
+              <select id="cgi-method">
+                <option value="GET">GET</option>
+                <option value="POST">POST</option>
+              </select>
+            </div>
+            <div class="field"><label>POST Body (stdin)</label><input type="text" id="cgi-body"
+                placeholder="key=value" /></div>
+          </div>
+          <label
+            style="font-size:10px;color:var(--txt-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;display:block">Env
+            Preview — will be sent to CGI</label>
+          <table class="env-table" id="env-table"></table>
+          <div class="btn-row" style="margin-top:10px">
+            <button class="btn btn-pink" onclick="execCGI()">▶ Execute CGI</button>
+            <button class="btn btn-pink" onclick="previewCGI()">👁 Preview</button>
+            <button class="btn btn-pink btn-sm" onclick="clearResp('cgi-resp')">↺ Clear</button>
+          </div>
+          <div id="cgi-resp"></div>
+        </div>
       </div>
-      <div class="field"><label>POST Body (stdin)</label><input type="text" id="cgi-body" placeholder="key=value"/></div>
-    </div>
-    <label style="font-size:10px;color:var(--txt-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;display:block">Env Preview — will be sent to CGI</label>
-    <table class="env-table" id="env-table"></table>
-    <div class="btn-row" style="margin-top:10px">
-      <button class="btn btn-pink" onclick="execCGI()">▶ Execute CGI</button>
-      <button class="btn btn-pink" onclick="previewCGI()">👁 Preview</button>
-      <button class="btn btn-pink btn-sm" onclick="clearResp('cgi-resp')">↺ Clear</button>
-    </div>
-    <div id="cgi-resp"></div>
-  </div>
-</div>
 
-<!-- ─────────── REDIRECTIONS ─────────── -->
-<div class="section" data-c="pink" id="s-redir">
-  <div class="sec-head" onclick="toggle(this)">
-    <span class="sec-badge">REDIR</span>
-    <span class="sec-title">Redirections</span>
-    <span class="sec-desc">301 · 302 · Location header</span>
-    <span class="sec-arrow">▼</span>
-  </div>
-  <div class="sec-body">
-    <div class="note">Tests <code>return 301/302</code> in location blocks. Sends a real request and inspects the <code>Location</code> header in the response.</div>
-    <div class="row">
-      <div class="field"><label>Source Path (triggers redirect)</label><input type="text" id="redir-src" value="/old-page"/></div>
-      <div class="field sm"><label>Expected Code</label>
-        <select id="redir-code"><option value="301">301 Permanent</option><option value="302">302 Temporary</option></select>
+      <!-- ─────────── REDIRECTIONS ─────────── -->
+      <div class="section" data-c="pink" id="s-redir">
+        <div class="sec-head" onclick="toggle(this)">
+          <span class="sec-badge">REDIR</span>
+          <span class="sec-title">Redirections</span>
+          <span class="sec-desc">301 · 302 · Location header</span>
+          <span class="sec-arrow">▼</span>
+        </div>
+        <div class="sec-body">
+          <div class="note">Tests <code>return 301/302</code> in location blocks. Sends a real request and inspects the
+            <code>Location</code> header in the response.</div>
+          <div class="row">
+            <div class="field"><label>Source Path (triggers redirect)</label><input type="text" id="redir-src"
+                value="/old-page" /></div>
+            <div class="field sm"><label>Expected Code</label>
+              <select id="redir-code">
+                <option value="301">301 Permanent</option>
+                <option value="302">302 Temporary</option>
+              </select>
+            </div>
+          </div>
+          <div class="row">
+            <div class="field"><label>Expected Location (target)</label><input type="text" id="redir-target"
+                value="/new-page" /></div>
+          </div>
+          <label
+            style="font-size:10px;color:var(--txt-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;display:block">Quick-test
+            common redirects</label>
+          <div class="rchips">
+            <span class="rchip" onclick="setRedir('/old','/new','301')">/old → /new (301)</span>
+            <span class="rchip" onclick="setRedir('/www','/',302)">/www → / (302)</span>
+            <span class="rchip" onclick="setRedir('/http-only','/https','301')">/http → /https (301)</span>
+            <span class="rchip" onclick="setRedir('/legacy','/v2/api','302')">/legacy → /v2/api (302)</span>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-pink" onclick="execRedir()">▶ Test Redirect</button>
+            <button class="btn btn-pink" onclick="previewRedir()">👁 Preview</button>
+            <button class="btn btn-pink btn-sm" onclick="clearResp('redir-resp')">↺ Clear</button>
+          </div>
+          <div id="redir-resp"></div>
+        </div>
       </div>
-    </div>
-    <div class="row">
-      <div class="field"><label>Expected Location (target)</label><input type="text" id="redir-target" value="/new-page"/></div>
-    </div>
-    <label style="font-size:10px;color:var(--txt-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;display:block">Quick-test common redirects</label>
-    <div class="rchips">
-      <span class="rchip" onclick="setRedir('/old','/new','301')">/old → /new (301)</span>
-      <span class="rchip" onclick="setRedir('/www','/',302)">/www → / (302)</span>
-      <span class="rchip" onclick="setRedir('/http-only','/https','301')">/http → /https (301)</span>
-      <span class="rchip" onclick="setRedir('/legacy','/v2/api','302')">/legacy → /v2/api (302)</span>
-    </div>
-    <div class="btn-row">
-      <button class="btn btn-pink" onclick="execRedir()">▶ Test Redirect</button>
-      <button class="btn btn-pink" onclick="previewRedir()">👁 Preview</button>
-      <button class="btn btn-pink btn-sm" onclick="clearResp('redir-resp')">↺ Clear</button>
-    </div>
-    <div id="redir-resp"></div>
-  </div>
-</div>
 
-<!-- ─────────── AUTOINDEX ─────────── -->
-<div class="section" data-c="cyan" id="s-autoindex">
-  <div class="sec-head" onclick="toggle(this)">
-    <span class="sec-badge">AUTOINDEX</span>
-    <span class="sec-title">Directory Listing</span>
-    <span class="sec-desc">autoindex on/off</span>
-    <span class="sec-arrow">▼</span>
-  </div>
-  <div class="sec-body">
-    <div class="note">When <code>autoindex</code> is <code>on</code> and no <code>index</code> file exists, your server must return an HTML directory listing. Test by requesting a directory path.</div>
-    <div class="row">
-      <div class="field"><label>Directory Path</label><input type="text" id="ai-path" value="/uploads/"/></div>
-      <div class="field sm"><label>Autoindex</label>
-        <select id="ai-toggle"><option value="on">on</option><option value="off">off</option></select>
+      <!-- ─────────── AUTOINDEX ─────────── -->
+      <div class="section" data-c="cyan" id="s-autoindex">
+        <div class="sec-head" onclick="toggle(this)">
+          <span class="sec-badge">AUTOINDEX</span>
+          <span class="sec-title">Directory Listing</span>
+          <span class="sec-desc">autoindex on/off</span>
+          <span class="sec-arrow">▼</span>
+        </div>
+        <div class="sec-body">
+          <div class="note">When <code>autoindex</code> is <code>on</code> and no <code>index</code> file exists, your
+            server must return an HTML directory listing. Test by requesting a directory path.</div>
+          <div class="row">
+            <div class="field"><label>Directory Path</label><input type="text" id="ai-path" value="/uploads/" /></div>
+            <div class="field sm"><label>Autoindex</label>
+              <select id="ai-toggle">
+                <option value="on">on</option>
+                <option value="off">off</option>
+              </select>
+            </div>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-cyan" onclick="execAutoindex()">▶ Test Autoindex</button>
+            <button class="btn btn-cyan" onclick="previewAutoindex()">👁 Preview in New Tab</button>
+            <button class="btn btn-cyan btn-sm" onclick="clearResp('ai-resp')">↺ Clear</button>
+          </div>
+          <!-- Mock autoindex preview -->
+          <div class="autoindex-mock">
+            <div class="ai-head">
+              <div class="dots"><span></span><span></span><span></span></div><span id="ai-head-path">Index of
+                /uploads/</span>
+            </div>
+            <div class="ai-row"><span class="ai-icon">📂</span><span class="ai-name">../</span><span
+                class="ai-meta"></span></div>
+            <div class="ai-row"><span class="ai-icon">📄</span><span class="ai-name">readme.txt</span><span
+                class="ai-meta">1.2 KB &nbsp; 2024-01-15</span></div>
+            <div class="ai-row"><span class="ai-icon">📄</span><span class="ai-name">photo.png</span><span
+                class="ai-meta">245 KB &nbsp; 2024-01-14</span></div>
+            <div class="ai-row"><span class="ai-icon">📂</span><span class="ai-name">subdir/</span><span
+                class="ai-meta">— &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2024-01-13</span></div>
+            <div class="ai-row"><span class="ai-icon">📄</span><span class="ai-name">data.json</span><span
+                class="ai-meta">87 B &nbsp;&nbsp; 2024-01-12</span></div>
+          </div>
+          <div id="ai-resp"></div>
+        </div>
       </div>
-    </div>
-    <div class="btn-row">
-      <button class="btn btn-cyan" onclick="execAutoindex()">▶ Test Autoindex</button>
-      <button class="btn btn-cyan" onclick="previewAutoindex()">👁 Preview in New Tab</button>
-      <button class="btn btn-cyan btn-sm" onclick="clearResp('ai-resp')">↺ Clear</button>
-    </div>
-    <!-- Mock autoindex preview -->
-    <div class="autoindex-mock">
-      <div class="ai-head"><div class="dots"><span></span><span></span><span></span></div><span id="ai-head-path">Index of /uploads/</span></div>
-      <div class="ai-row"><span class="ai-icon">📂</span><span class="ai-name">../</span><span class="ai-meta"></span></div>
-      <div class="ai-row"><span class="ai-icon">📄</span><span class="ai-name">readme.txt</span><span class="ai-meta">1.2 KB &nbsp; 2024-01-15</span></div>
-      <div class="ai-row"><span class="ai-icon">📄</span><span class="ai-name">photo.png</span><span class="ai-meta">245 KB &nbsp; 2024-01-14</span></div>
-      <div class="ai-row"><span class="ai-icon">📂</span><span class="ai-name">subdir/</span><span class="ai-meta">— &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2024-01-13</span></div>
-      <div class="ai-row"><span class="ai-icon">📄</span><span class="ai-name">data.json</span><span class="ai-meta">87 B &nbsp;&nbsp; 2024-01-12</span></div>
-    </div>
-    <div id="ai-resp"></div>
-  </div>
-</div>
 
-<!-- ─────────── CUSTOM ERROR PAGES ─────────── -->
-<div class="section" data-c="red" id="s-errors">
-  <div class="sec-head" onclick="toggle(this)">
-    <span class="sec-badge">ERRORS</span>
-    <span class="sec-title">Custom Error Pages</span>
-    <span class="sec-desc">error_page directive</span>
-    <span class="sec-arrow">▼</span>
-  </div>
-  <div class="sec-body">
-    <div class="note">Tests <code>error_page</code> directive. Click a status code to send a request designed to trigger that error. Your server should serve your custom error HTML, not a default response.</div>
-    <div class="err-grid" id="err-grid"></div>
-    <div class="row" style="margin-top:12px">
-      <div class="field"><label>Custom Error Page Path</label><input type="text" id="err-page" value="/errors/404.html"/></div>
+      <!-- ─────────── CUSTOM ERROR PAGES ─────────── -->
+      <div class="section" data-c="red" id="s-errors">
+        <div class="sec-head" onclick="toggle(this)">
+          <span class="sec-badge">ERRORS</span>
+          <span class="sec-title">Custom Error Pages</span>
+          <span class="sec-desc">error_page directive</span>
+          <span class="sec-arrow">▼</span>
+        </div>
+        <div class="sec-body">
+          <div class="note">Tests <code>error_page</code> directive. Click a status code to send a request designed to
+            trigger that error. Your server should serve your custom error HTML, not a default response.</div>
+          <div class="err-grid" id="err-grid"></div>
+          <div class="row" style="margin-top:12px">
+            <div class="field"><label>Custom Error Page Path</label><input type="text" id="err-page"
+                value="/errors/404.html" /></div>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-red" onclick="execError(404)">▶ Trigger Selected</button>
+            <button class="btn btn-red" onclick="previewError()">👁 Preview</button>
+            <button class="btn btn-red btn-sm" onclick="clearResp('err-resp')">↺ Clear</button>
+          </div>
+          <div id="err-resp"></div>
+        </div>
+      </div>
+
+    </div><!-- /main-panel -->
+
+    <!-- ─── RIGHT: LIVE LOG ─── -->
+    <div class="log-panel">
+      <div class="log-header">
+        <span>▸ Live Request Log</span>
+        <button onclick="clearLog()">CLEAR</button>
+      </div>
+      <div class="log-body" id="log-body"></div>
     </div>
-    <div class="btn-row">
-      <button class="btn btn-red" onclick="execError(404)">▶ Trigger Selected</button>
-      <button class="btn btn-red" onclick="previewError()">👁 Preview</button>
-      <button class="btn btn-red btn-sm" onclick="clearResp('err-resp')">↺ Clear</button>
-    </div>
-    <div id="err-resp"></div>
-  </div>
-</div>
 
-</div><!-- /main-panel -->
+  </div><!-- /wrapper -->
 
-<!-- ─── RIGHT: LIVE LOG ─── -->
-<div class="log-panel">
-  <div class="log-header">
-    <span>▸ Live Request Log</span>
-    <button onclick="clearLog()">CLEAR</button>
-  </div>
-  <div class="log-body" id="log-body"></div>
-</div>
-
-</div><!-- /wrapper -->
-
-<!-- ═══════════════════════════════════════════════
+  <!-- ═══════════════════════════════════════════════
      JAVASCRIPT
      ═══════════════════════════════════════════════ -->
-<script>
-/* ─── CONFIG / BASE URL ─── */
-const $ = id => document.getElementById(id);
+  <script>
+    console.log('=== WEBSERV TESTER LOADED ===');
+    window.onerror = function (msg, url, line, col, error) {
+      console.error('JS Error:', msg, 'Line:', line, 'Col:', col);
+      return false;
+    };
 
-function getBaseURL(){
-  const proto = $('cfg-proto').value;
-  const host  = $('cfg-host').value.trim()||'localhost';
-  const port  = $('cfg-port').value==='custom' ? $('cfg-port-custom').value.trim()||'8080' : $('cfg-port').value;
-  return `${proto}://${host}:${port}`;
-}
-function updateBaseDisplay(){
-  $('base-url-display').textContent = getBaseURL();
-  updateEnvTable();
-}
+    /* ─── CONFIG / BASE URL ─── */
+    const $ = id => document.getElementById(id);
 
-$('cfg-host').addEventListener('input',updateBaseDisplay);
-$('cfg-port').addEventListener('change',function(){
-  $('cfg-port-custom').style.display = this.value==='custom'?'inline-block':'none';
-  updateBaseDisplay();
-});
-$('cfg-port-custom').addEventListener('input',updateBaseDisplay);
-$('cfg-proto').addEventListener('change',updateBaseDisplay);
-$('cfg-srvname').addEventListener('input',updateBaseDisplay);
+    function getBaseURL() {
+      const proto = $('cfg-proto').value;
+      const host = $('cfg-host').value.trim() || 'localhost';
+      const port = $('cfg-port').value === 'custom' ? $('cfg-port-custom').value.trim() || '8080' : $('cfg-port').value;
+      return `${proto}://${host}:${port}`;
+    }
+    function updateBaseDisplay() {
+      $('base-url-display').textContent = getBaseURL();
+      updateEnvTable();
+    }
 
-/* ─── LOG ─── */
-function log(method,url,status){
-  const t = new Date().toLocaleTimeString();
-  const sc = status>=200&&status<300?'ok':status>=300&&status<400?'redir':'err';
-  const mc = method==='GET'?'get':method==='POST'?'post':method==='DELETE'?'del':method==='CGI'?'cgi':'sys';
-  $('log-body').insertAdjacentHTML('afterbegin',`
+    $('cfg-host').addEventListener('input', updateBaseDisplay);
+    $('cfg-port').addEventListener('change', function () {
+      $('cfg-port-custom').style.display = this.value === 'custom' ? 'inline-block' : 'none';
+      updateBaseDisplay();
+    });
+    $('cfg-port-custom').addEventListener('input', updateBaseDisplay);
+    $('cfg-proto').addEventListener('change', updateBaseDisplay);
+    $('cfg-srvname').addEventListener('input', updateBaseDisplay);
+
+    /* ─── LOG ─── */
+    function log(method, url, status) {
+      const t = new Date().toLocaleTimeString();
+      const sc = status >= 200 && status < 300 ? 'ok' : status >= 300 && status < 400 ? 'redir' : 'err';
+      const mc = method === 'GET' ? 'get' : method === 'POST' ? 'post' : method === 'DELETE' ? 'del' : method === 'CGI' ? 'cgi' : 'sys';
+      $('log-body').insertAdjacentHTML('afterbegin', `
     <div class="log-entry">
       <span class="le-status chip ${sc}">${status}</span>
       <span class="le-time">${t}</span>
       <span class="le-method ${mc}">${method}</span>
       <span class="le-url">${url}</span>
     </div>`);
-}
-function clearLog(){ $('log-body').innerHTML=''; }
+    }
+    function clearLog() { $('log-body').innerHTML = ''; }
 
-/* ─── RESPONSE RENDERER ─── */
-function showResp(containerId, status, rawText, extraInfo){
-  const sc = status>=200&&status<300?'ok':status>=300&&status<400?'redir':'err';
-  const st = status>=200&&status<300?status+' OK':status>=300&&status<400?status+' Redirect':status+' Error';
-  let pretty;
-  try{ pretty = JSON.stringify(JSON.parse(rawText),null,2); } catch(e){ pretty = rawText; }
-  // highlight
-  let hl = pretty
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-    .replace(/"([^"]+)"(\s*:)/g,'<span class="k">"$1"</span>$2')
-    .replace(/:\s*"([^"]*?)"/g,': <span class="v">"$1"</span>')
-    .replace(/:\s*(\d+)/g,': <span class="v">$1</span>')
-    .replace(/:\s*(true|false|null)/g,': <span class="v">$1</span>');
-  const extra = extraInfo ? `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">${extraInfo}</div>` : '';
-  $(containerId).innerHTML=`
+    /* ─── RESPONSE RENDERER ─── */
+    function showResp(containerId, status, rawText, extraInfo) {
+      const sc = status >= 200 && status < 300 ? 'ok' : status >= 300 && status < 400 ? 'redir' : 'err';
+      const st = status >= 200 && status < 300 ? status + ' OK' : status >= 300 && status < 400 ? status + ' Redirect' : status + ' Error';
+      let pretty;
+      try { pretty = JSON.stringify(JSON.parse(rawText), null, 2); } catch (e) { pretty = rawText; }
+      // highlight
+      let hl = pretty
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"([^"]+)"(\s*:)/g, '<span class="k">"$1"</span>$2')
+        .replace(/:\s*"([^"]*?)"/g, ': <span class="v">"$1"</span>')
+        .replace(/:\s*(\d+)/g, ': <span class="v">$1</span>')
+        .replace(/:\s*(true|false|null)/g, ': <span class="v">$1</span>');
+      const extra = extraInfo ? `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">${extraInfo}</div>` : '';
+      $(containerId).innerHTML = `
     <div class="resp">
       <div class="resp-bar"><div class="dots"><span></span><span></span><span></span></div><span>Response</span><span class="chip ${sc}">${st}</span></div>
       <div class="resp-body">${hl}${extra}</div>
     </div>`;
-}
-function showInfo(containerId, html){
-  $(containerId).innerHTML=`
+    }
+    function showInfo(containerId, html) {
+      $(containerId).innerHTML = `
     <div class="resp">
       <div class="resp-bar"><div class="dots"><span></span><span></span><span></span></div><span>Info</span></div>
       <div class="resp-body">${html}</div>
     </div>`;
-}
-function clearResp(id){ $(id).innerHTML=''; }
+    }
+    function clearResp(id) { $(id).innerHTML = ''; }
 
-/* ─── COLLAPSIBLE SECTIONS ─── */
-function toggle(head){
-  const sec = head.closest('.section');
-  sec.classList.toggle('collapsed');
-}
+    /* ─── COLLAPSIBLE SECTIONS ─── */
+    function toggle(head) {
+      const sec = head.closest('.section');
+      sec.classList.toggle('collapsed');
+    }
 
-/* ═══ GET ═══ */
-function previewGET(){
-  const path = $('get-path').value.trim()||'/';
-  const qs   = $('get-qs').value.trim();
-  const url  = getBaseURL() + path + (qs ? '?'+qs : '');
-  window.open(url, '_blank');
-  log('GET',url,'preview');
-}
+    /* ═══ GET ═══ */
+    function previewGET() {
+      const path = $('get-path').value.trim() || '/';
+      const qs = $('get-qs').value.trim();
+      const url = getBaseURL() + path + (qs ? '?' + qs : '');
+      window.open(url, '_blank');
+      log('GET', url, 'preview');
+    }
 
-async function execGET(){
-  const path = $('get-path').value.trim()||'/';
-  const qs   = $('get-qs').value.trim();
-  let url    = getBaseURL() + path + (qs ? '?'+qs : '');
-  showInfo('get-resp','<span class="d">⏳ GET →</span> <span class="i">'+url+'</span>');
-  try{
-    const res = await fetch(url,{ method:'GET', mode:'cors', redirect:'manual' });
-    const txt = await res.text();
-    log('GET',url,res.status);
-    showResp('get-resp', res.status, txt||'(empty body)');
-  } catch(e){
-    log('GET',url,0);
-    showResp('get-resp',0,'Network / CORS Error:\n'+e.message,
-      '<span class="d">💡 Make sure your webserv is running on <strong style="color:var(--green)">'+getBaseURL()+'</strong> and allows CORS or open directly in browser.</span>');
-  }
-}
+    async function execGET() {
+      const path = $('get-path').value.trim() || '/';
+      const qs = $('get-qs').value.trim();
+      let url = getBaseURL() + path + (qs ? '?' + qs : '');
+      showInfo('get-resp', '<span class="d">⏳ GET →</span> <span class="i">' + url + '</span>');
+      try {
+        const res = await fetch(url, { method: 'GET', mode: 'cors', redirect: 'manual' });
+        const txt = await res.text();
+        log('GET', url, res.status);
+        showResp('get-resp', res.status, txt || '(empty body)');
+      } catch (e) {
+        log('GET', url, 0);
+        showResp('get-resp', 0, 'Network / CORS Error:\n' + e.message,
+          '<span class="d">💡 Make sure your webserv is running on <strong style="color:var(--green)">' + getBaseURL() + '</strong> and allows CORS or open directly in browser.</span>');
+      }
+    }
 
-/* ═══ POST ═══ */
-async function execPOST(){
-  const path  = $('post-path').value.trim()||'/';
-  const ctype = $('post-ctype').value;
-  const body  = $('post-body').value;
-  const url   = getBaseURL()+path;
-  showInfo('post-resp','<span class="d">⏳ POST →</span> <span class="i">'+url+'</span>');
-  try{
-    const res = await fetch(url,{ method:'POST', headers:{'Content-Type':ctype}, body, mode:'cors', redirect:'manual' });
-    const txt = await res.text();
-    log('POST',url,res.status);
-    showResp('post-resp', res.status, txt||'(empty body)',
-      `<span class="d">Content-Length sent:</span> <span class="v">${new Blob([body]).size}</span>`);
-  } catch(e){
-    log('POST',url,0);
-    showResp('post-resp',0,'Network / CORS Error:\n'+e.message);
-  }
-}
+    /* ═══ POST ═══ */
+    async function execPOST() {
+      const path = $('post-path').value.trim() || '/';
+      const ctype = $('post-ctype').value;
+      const body = $('post-body').value;
+      const url = getBaseURL() + path;
+      showInfo('post-resp', '<span class="d">⏳ POST →</span> <span class="i">' + url + '</span>');
+      try {
+        const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': ctype }, body, mode: 'cors', redirect: 'manual' });
+        const txt = await res.text();
+        log('POST', url, res.status);
+        showResp('post-resp', res.status, txt || '(empty body)',
+          `<span class="d">Content-Length sent:</span> <span class="v">${new Blob([body]).size}</span>`);
+      } catch (e) {
+        log('POST', url, 0);
+        showResp('post-resp', 0, 'Network / CORS Error:\n' + e.message);
+      }
+    }
 
-/* ═══ DELETE ═══ */
-async function execDELETE(){
-  const path = $('del-path').value.trim()||'/';
-  const url  = getBaseURL()+path;
-  showInfo('del-resp','<span class="d">⏳ DELETE →</span> <span class="i">'+url+'</span>');
-  try{
-    const res = await fetch(url,{ method:'DELETE', mode:'cors', redirect:'manual' });
-    const txt = await res.text();
-    log('DELETE',url,res.status);
-    showResp('del-resp', res.status, txt||'(empty body)');
-  } catch(e){
-    log('DELETE',url,0);
-    showResp('del-resp',0,'Network / CORS Error:\n'+e.message);
-  }
-}
+    /* ═══ DELETE ═══ */
+    async function execDELETE() {
+      const path = $('del-path').value.trim() || '/';
+      const url = getBaseURL() + path;
+      showInfo('del-resp', '<span class="d">⏳ DELETE →</span> <span class="i">' + url + '</span>');
+      try {
+        const res = await fetch(url, { method: 'DELETE', mode: 'cors', redirect: 'manual' });
+        const txt = await res.text();
+        log('DELETE', url, res.status);
+        showResp('del-resp', res.status, txt || '(empty body)');
+      } catch (e) {
+        log('DELETE', url, 0);
+        showResp('del-resp', 0, 'Network / CORS Error:\n' + e.message);
+      }
+    }
 
-/* ═══ FILE UPLOAD ═══ */
-let files = [];
-const dz = $('dz');
-['dragenter','dragover','dragleave','drop'].forEach(e=>dz.addEventListener(e,ev=>{ev.preventDefault();ev.stopPropagation()}));
-dz.addEventListener('dragover',()=>dz.classList.add('over'));
-dz.addEventListener('dragleave',()=>dz.classList.remove('over'));
-dz.addEventListener('drop',e=>{ dz.classList.remove('over'); addFiles(e.dataTransfer.files); });
-$('file-in').addEventListener('change',function(){ addFiles(this.files); });
+    /* ═══ FILE UPLOAD ═══ */
+    let files = [];
+    const dz = $('dz');
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(e => dz.addEventListener(e, ev => { ev.preventDefault(); ev.stopPropagation() }));
+    dz.addEventListener('dragover', () => dz.classList.add('over'));
+    dz.addEventListener('dragleave', () => dz.classList.remove('over'));
+    dz.addEventListener('drop', e => { dz.classList.remove('over'); addFiles(e.dataTransfer.files); });
+    $('file-in').addEventListener('change', function () { addFiles(this.files); });
 
-function addFiles(fl){
-  for(const f of fl) files.push(f);
-  renderFchips();
-  $('up-btn').disabled = files.length===0;
-}
-function renderFchips(){
-  $('fchips').innerHTML = files.map((f,i)=>`<span class="fchip">📄 ${f.name} <span style="color:var(--txt-dim);font-size:10px">(${fmtSize(f.size)})</span><span class="fx" onclick="rmFile(${i})">✕</span></span>`).join('');
-}
-function rmFile(i){ files.splice(i,1); renderFchips(); $('up-btn').disabled=files.length===0; }
-function clearUpload(){ files=[]; renderFchips(); $('up-btn').disabled=true; $('file-in').value=''; clearResp('upload-resp'); }
-function fmtSize(b){ return b<1024?b+' B':b<1048576?(b/1024).toFixed(1)+' KB':(b/1048576).toFixed(2)+' MB'; }
+    function addFiles(fl) {
+      for (const f of fl) files.push(f);
+      console.log('Files added:', files.length, 'files');
+      renderFchips();
+      $('up-btn').disabled = files.length === 0;
+      console.log('Upload button disabled:', $('up-btn').disabled);
+    }
+    function renderFchips() {
+      $('fchips').innerHTML = files.map((f, i) => `<span class="fchip">📄 ${f.name} <span style="color:var(--txt-dim);font-size:10px">(${fmtSize(f.size)})</span><span class="fx" onclick="rmFile(${i})">✕</span></span>`).join('');
+    }
+    function rmFile(i) { files.splice(i, 1); renderFchips(); $('up-btn').disabled = files.length === 0; }
+    function clearUpload() { files = []; renderFchips(); $('up-btn').disabled = true; $('file-in').value = ''; clearResp('upload-resp'); }
+    function fmtSize(b) { return b < 1024 ? b + ' B' : b < 1048576 ? (b / 1024).toFixed(1) + ' KB' : (b / 1048576).toFixed(2) + ' MB'; }
 
-async function doUpload(){
-  const maxBytes = parseInt($('upload-maxsize').value);
-  const path     = $('upload-path').value.trim()||'/uploads';
-  const url      = getBaseURL()+path;
+    async function doUpload() {
+      console.log('doUpload called, files:', files.length);
+      const maxBytes = parseInt($('upload-maxsize').value);
+      const path = $('upload-path').value.trim() || '/uploads';
+      const url = getBaseURL() + path;
+      console.log('Upload URL:', url);
 
-  // check size limit client-side (mirrors what server should do → 413)
-  const totalSize = files.reduce((s,f)=>s+f.size,0);
-  if(totalSize > maxBytes){
-    log('POST',url,413);
-    showResp('upload-resp',413,
-      `413 Payload Too Large\n\nTotal: ${fmtSize(totalSize)}\nLimit: ${fmtSize(maxBytes)}\n\n→ Your webserv must return 413 when Content-Length exceeds client_max_body_size.`);
-    return;
-  }
+      // check size limit client-side (mirrors what server should do → 413)
+      const totalSize = files.reduce((s, f) => s + f.size, 0);
+      if (totalSize > maxBytes) {
+        log('POST', url, 413);
+        showResp('upload-resp', 413,
+          `413 Payload Too Large\n\nTotal: ${fmtSize(totalSize)}\nLimit: ${fmtSize(maxBytes)}\n\n→ Your webserv must return 413 when Content-Length exceeds client_max_body_size.`);
+        return;
+      }
 
-  showInfo('upload-resp','<span class="d">⏳ POST multipart →</span> <span class="i">'+url+'</span>');
-  const fd = new FormData();
-  files.forEach(f=>fd.append('file',f,f.name));
+      showInfo('upload-resp', '<span class="d">⏳ POST multipart →</span> <span class="i">' + url + '</span>');
+      const fd = new FormData();
+      files.forEach(f => fd.append('file', f, f.name));
 
-  try{
-    const res = await fetch(url,{ method:'POST', body:fd, mode:'cors', redirect:'manual' });
-    const txt = await res.text();
-    log('POST',url,res.status);
-    showResp('upload-resp', res.status, txt||'(empty body)',
-      `<span class="d">Files:</span> <span class="v">${files.length}</span> &nbsp; <span class="d">Total size:</span> <span class="v">${fmtSize(totalSize)}</span> &nbsp; <span class="d">Limit:</span> <span class="v">${fmtSize(maxBytes)}</span>`);
-  } catch(e){
-    log('POST',url,0);
-    // simulate success for offline testing
-    showResp('upload-resp',201,
-      JSON.stringify({status:'created',files:files.map(f=>({name:f.name,size:f.size,type:f.type}))},null,2),
-      '<span class="d">⚠ Server unreachable — showing simulated 201 response. Connect your webserv to test live.</span>');
-  }
-}
+      try {
+        const res = await fetch(url, { method: 'POST', body: fd, mode: 'cors', redirect: 'manual' });
+        const txt = await res.text();
+        log('POST', url, res.status);
+        showResp('upload-resp', res.status, txt || '(empty body)',
+          `<span class="d">Files:</span> <span class="v">${files.length}</span> &nbsp; <span class="d">Total size:</span> <span class="v">${fmtSize(totalSize)}</span> &nbsp; <span class="d">Limit:</span> <span class="v">${fmtSize(maxBytes)}</span>`);
+      } catch (e) {
+        log('POST', url, 0);
+        showResp('upload-resp', 0, 'Network / CORS Error:\n' + e.message + '\n\nMake sure:\n1. Your webserv is running on ' + getBaseURL() + '\n2. The upload path exists and accepts POST\n3. CORS is configured (or test directly in browser)',
+          '<span class="d">💡 Your webserv should have a location block at <strong style="color:var(--amber)">' + path + '</strong> that accepts POST with client_max_body_size configured.</span>');
+      }
+    }
 
-/* ═══ CGI ═══ */
-function updateEnvTable(){
-  const port    = $('cfg-port').value==='custom'?$('cfg-port-custom').value.trim()||'8080':$('cfg-port').value;
-  const srvname = $('cfg-srvname').value.trim()||$('cfg-host').value.trim()||'localhost';
-  const script  = $('cgi-path').value.trim();
-  const pinfo   = $('cgi-pathinfo').value.trim();
-  const qs      = $('cgi-qs').value.trim();
-  const method  = $('cgi-method').value;
-  const body    = $('cgi-body').value.trim();
-  const envs = [
-    ['REQUEST_METHOD',  method],
-    ['SCRIPT_NAME',     script],
-    ['PATH_INFO',       pinfo],
-    ['QUERY_STRING',    qs],
-    ['SERVER_NAME',     srvname],
-    ['SERVER_PORT',     port],
-    ['SERVER_PROTOCOL', 'HTTP/1.1'],
-    ['CONTENT_TYPE',    method==='POST'?'application/x-www-form-urlencoded':''],
-    ['CONTENT_LENGTH',  method==='POST'?String(new Blob([body]).size):'0'],
-  ];
-  $('env-table').innerHTML = envs.map(([k,v])=>`<tr><td>${k}</td><td><span class="v">${v||'(empty)'}</span></td></tr>`).join('');
-}
-// live update on relevant inputs
-['cgi-path','cgi-pathinfo','cgi-qs','cgi-method','cgi-body'].forEach(id=>{
-  $(id).addEventListener('input',updateEnvTable);
-});
+    /* ═══ CGI ═══ */
+    function updateEnvTable() {
+      const port = $('cfg-port').value === 'custom' ? $('cfg-port-custom').value.trim() || '8080' : $('cfg-port').value;
+      const srvname = $('cfg-srvname').value.trim() || $('cfg-host').value.trim() || 'localhost';
+      const script = $('cgi-path').value.trim();
+      const pinfo = $('cgi-pathinfo').value.trim();
+      const qs = $('cgi-qs').value.trim();
+      const method = $('cgi-method').value;
+      const body = $('cgi-body').value.trim();
+      const envs = [
+        ['REQUEST_METHOD', method],
+        ['SCRIPT_NAME', script],
+        ['PATH_INFO', pinfo],
+        ['QUERY_STRING', qs],
+        ['SERVER_NAME', srvname],
+        ['SERVER_PORT', port],
+        ['SERVER_PROTOCOL', 'HTTP/1.1'],
+        ['CONTENT_TYPE', method === 'POST' ? 'application/x-www-form-urlencoded' : ''],
+        ['CONTENT_LENGTH', method === 'POST' ? String(new Blob([body]).size) : '0'],
+      ];
+      $('env-table').innerHTML = envs.map(([k, v]) => `<tr><td>${k}</td><td><span class="v">${v || '(empty)'}</span></td></tr>`).join('');
+    }
+    // live update on relevant inputs
+    ['cgi-path', 'cgi-pathinfo', 'cgi-qs', 'cgi-method', 'cgi-body'].forEach(id => {
+      $(id).addEventListener('input', updateEnvTable);
+    });
 
-async function execCGI(){
-  const script = $('cgi-path').value.trim();
-  const pinfo  = $('cgi-pathinfo').value.trim();
-  const qs     = $('cgi-qs').value.trim();
-  const method = $('cgi-method').value;
-  const body   = $('cgi-body').value.trim();
-  const url    = getBaseURL() + script + pinfo + (qs?'?'+qs:'');
+    async function execCGI() {
+      const script = $('cgi-path').value.trim();
+      const pinfo = $('cgi-pathinfo').value.trim();
+      const qs = $('cgi-qs').value.trim();
+      const method = $('cgi-method').value;
+      const body = $('cgi-body').value.trim();
+      const url = getBaseURL() + script + pinfo + (qs ? '?' + qs : '');
 
-  showInfo('cgi-resp','<span class="d">⏳ CGI →</span> <span class="i">'+url+'</span> <span class="d">['+method+']</span>');
-  try{
-    const opts = { method, mode:'cors', redirect:'manual' };
-    if(method==='POST'){ opts.headers={'Content-Type':'application/x-www-form-urlencoded','Content-Length':String(new Blob([body]).size)}; opts.body=body; }
-    const res = await fetch(url, opts);
-    const txt = await res.text();
-    log('CGI',url,res.status);
-    showResp('cgi-resp', res.status, txt||'(empty CGI output)');
-  } catch(e){
-    log('CGI',url,0);
-    // show what WOULD be sent
-    showResp('cgi-resp',0,
-      `CGI request failed (server not reachable)\n\nWould send:\n  ${method} ${script}${pinfo}${qs?'?'+qs:''}\n\nExpected env:\n`+
-      [['REQUEST_METHOD',method],['SCRIPT_NAME',script],['PATH_INFO',pinfo],['QUERY_STRING',qs]].map(([k,v])=>`  ${k}=${v}`).join('\n'),
-      '<span class="d">💡 Place a CGI script at <strong style="color:var(--pink)">' + script + '</strong> on your webserv and make it executable.</span>');
-  }
-}
+      showInfo('cgi-resp', '<span class="d">⏳ CGI →</span> <span class="i">' + url + '</span> <span class="d">[' + method + ']</span>');
+      try {
+        const opts = { method, mode: 'cors', redirect: 'manual' };
+        if (method === 'POST') { opts.headers = { 'Content-Type': 'application/x-www-form-urlencoded', 'Content-Length': String(new Blob([body]).size) }; opts.body = body; }
+        const res = await fetch(url, opts);
+        const txt = await res.text();
+        log('CGI', url, res.status);
+        showResp('cgi-resp', res.status, txt || '(empty CGI output)');
+      } catch (e) {
+        log('CGI', url, 0);
+        // show what WOULD be sent
+        showResp('cgi-resp', 0,
+          `CGI request failed (server not reachable)\n\nWould send:\n  ${method} ${script}${pinfo}${qs ? '?' + qs : ''}\n\nExpected env:\n` +
+          [['REQUEST_METHOD', method], ['SCRIPT_NAME', script], ['PATH_INFO', pinfo], ['QUERY_STRING', qs]].map(([k, v]) => `  ${k}=${v}`).join('\n'),
+          '<span class="d">💡 Place a CGI script at <strong style="color:var(--pink)">' + script + '</strong> on your webserv and make it executable.</span>');
+      }
+    }
 
-function previewCGI(){
-  const script = $('cgi-path').value.trim();
-  const pinfo  = $('cgi-pathinfo').value.trim();
-  const qs     = $('cgi-qs').value.trim();
-  const url    = getBaseURL() + script + pinfo + (qs?'?'+qs:'');
-  window.open(url, '_blank');
-  log('CGI',url,'preview');
-}
+    function previewCGI() {
+      const script = $('cgi-path').value.trim();
+      const pinfo = $('cgi-pathinfo').value.trim();
+      const qs = $('cgi-qs').value.trim();
+      const url = getBaseURL() + script + pinfo + (qs ? '?' + qs : '');
+      window.open(url, '_blank');
+      log('CGI', url, 'preview');
+    }
 
-/* ═══ REDIRECTIONS ═══ */
-function setRedir(src,tgt,code){
-  $('redir-src').value   = src;
-  $('redir-target').value = tgt;
-  $('redir-code').value  = String(code);
-}
+    /* ═══ REDIRECTIONS ═══ */
+    function setRedir(src, tgt, code) {
+      $('redir-src').value = src;
+      $('redir-target').value = tgt;
+      $('redir-code').value = String(code);
+    }
 
-function previewRedir(){
-  const src  = $('redir-src').value.trim();
-  const url  = getBaseURL()+src;
-  window.open(url, '_blank');
-  log('GET',url,'preview');
-}
+    function previewRedir() {
+      const src = $('redir-src').value.trim();
+      const url = getBaseURL() + src;
+      window.open(url, '_blank');
+      log('GET', url, 'preview');
+    }
 
-async function execRedir(){
-  const src  = $('redir-src').value.trim();
-  const code = $('redir-code').value;
-  const url  = getBaseURL()+src;
-  showInfo('redir-resp','<span class="d">⏳ GET (expect '+code+') →</span> <span class="i">'+url+'</span>');
-  try{
-    const res = await fetch(url,{ method:'GET', mode:'cors', redirect:'manual' });
-    const loc = res.headers.get('Location')||'(no Location header)';
-    log('GET',url,res.status);
-    const expected = $('redir-target').value.trim();
-    const match = loc.includes(expected);
-    showResp('redir-resp', res.status,
-      `Status:   ${res.status}\nLocation: ${loc}\n\nExpected: ${code} → ${expected}\nMatch:    ${match?'✅ YES':'❌ NO — check your location block'}`,
-      match?'<span class="k">✔ Redirect matched correctly</span>':'<span class="e">✘ Location header does not contain expected target</span>');
-  } catch(e){
-    log('GET',url,0);
-    showResp('redir-resp',0,'Network Error: '+e.message+'\n\nTo test redirections manually:\n  curl -v '+url,
-      '<span class="d">💡 Test with: <code style="color:var(--cyan)">curl -sI '+url+'</code> and check the Location header.</span>');
-  }
-}
+    async function execRedir() {
+      const src = $('redir-src').value.trim();
+      const code = $('redir-code').value;
+      const url = getBaseURL() + src;
+      showInfo('redir-resp', '<span class="d">⏳ GET (expect ' + code + ') →</span> <span class="i">' + url + '</span>');
+      try {
+        const res = await fetch(url, { method: 'GET', mode: 'cors', redirect: 'manual' });
+        const loc = res.headers.get('Location') || '(no Location header)';
+        log('GET', url, res.status);
+        const expected = $('redir-target').value.trim();
+        const match = loc.includes(expected);
+        showResp('redir-resp', res.status,
+          `Status:   ${res.status}\nLocation: ${loc}\n\nExpected: ${code} → ${expected}\nMatch:    ${match ? '✅ YES' : '❌ NO — check your location block'}`,
+          match ? '<span class="k">✔ Redirect matched correctly</span>' : '<span class="e">✘ Location header does not contain expected target</span>');
+      } catch (e) {
+        log('GET', url, 0);
+        showResp('redir-resp', 0, 'Network Error: ' + e.message + '\n\nTo test redirections manually:\n  curl -v ' + url,
+          '<span class="d">💡 Test with: <code style="color:var(--cyan)">curl -sI ' + url + '</code> and check the Location header.</span>');
+      }
+    }
 
-/* ═══ AUTOINDEX ═══ */
-$('ai-path').addEventListener('input', function(){
-  $('ai-head-path').textContent = 'Index of ' + (this.value.trim() || '/');
-});
+    /* ═══ AUTOINDEX ═══ */
+    $('ai-path').addEventListener('input', function () {
+      $('ai-head-path').textContent = 'Index of ' + (this.value.trim() || '/');
+    });
 
-function previewAutoindex(){
-  const path = $('ai-path').value.trim()||'/';
-  const url  = getBaseURL()+path;
-  window.open(url, '_blank');
-  log('GET',url,'preview');
-}
+    function previewAutoindex() {
+      const path = $('ai-path').value.trim() || '/';
+      const url = getBaseURL() + path;
+      window.open(url, '_blank');
+      log('GET', url, 'preview');
+    }
 
-async function execAutoindex(){
-  const path = $('ai-path').value.trim()||'/';
-  const ai   = $('ai-toggle').value;
-  const url  = getBaseURL()+path;
-  showInfo('ai-resp','<span class="d">⏳ GET directory (autoindex: '+ai+') →</span> <span class="i">'+url+'</span>');
-  try{
-    const res = await fetch(url,{ method:'GET', mode:'cors' });
-    const txt = await res.text();
-    log('GET',url,res.status);
-    const hasList = txt.toLowerCase().includes('<a') || txt.toLowerCase().includes('href');
-    showResp('ai-resp', res.status, txt.substring(0,600)+(txt.length>600?'\n… (truncated)':''),
-      ai==='on'
-        ? (hasList?'<span class="k">✔ Response contains links — autoindex likely working</span>':'<span class="d">⚠ No &lt;a&gt; tags found. Verify autoindex is on in your config.</span>')
-        : '<span class="d">autoindex is off → server should return index file or 403.</span>');
-  } catch(e){
-    log('GET',url,0);
-    showResp('ai-resp',0,'Server unreachable.\n\nWhen autoindex is ON your server must generate an HTML page listing directory contents.\nWhen OFF it must serve index_file or return 403.',
-      '<span class="d">💡 Enable autoindex in your server block for this location to test.</span>');
-  }
-}
+    async function execAutoindex() {
+      const path = $('ai-path').value.trim() || '/';
+      const ai = $('ai-toggle').value;
+      const url = getBaseURL() + path;
+      showInfo('ai-resp', '<span class="d">⏳ GET directory (autoindex: ' + ai + ') →</span> <span class="i">' + url + '</span>');
+      try {
+        const res = await fetch(url, { method: 'GET', mode: 'cors' });
+        const txt = await res.text();
+        log('GET', url, res.status);
+        const hasList = txt.toLowerCase().includes('<a') || txt.toLowerCase().includes('href');
+        showResp('ai-resp', res.status, txt.substring(0, 600) + (txt.length > 600 ? '\n… (truncated)' : ''),
+          ai === 'on'
+            ? (hasList ? '<span class="k">✔ Response contains links — autoindex likely working</span>' : '<span class="d">⚠ No &lt;a&gt; tags found. Verify autoindex is on in your config.</span>')
+            : '<span class="d">autoindex is off → server should return index file or 403.</span>');
+      } catch (e) {
+        log('GET', url, 0);
+        showResp('ai-resp', 0, 'Server unreachable.\n\nWhen autoindex is ON your server must generate an HTML page listing directory contents.\nWhen OFF it must serve index_file or return 403.',
+          '<span class="d">💡 Enable autoindex in your server block for this location to test.</span>');
+      }
+    }
 
-/* ═══ ERROR PAGES ═══ */
-const ERROR_CODES = [
-  [400,'Bad Request'],
-  [401,'Unauthorized'],
-  [403,'Forbidden'],
-  [404,'Not Found'],
-  [405,'Method Not Allowed'],
-  [408,'Request Timeout'],
-  [413,'Payload Too Large'],
-  [500,'Internal Server Error'],
-  [502,'Bad Gateway'],
-  [503,'Service Unavailable']
-];
-let selectedError = 404;
-(function renderErrGrid(){
-  $('err-grid').innerHTML = ERROR_CODES.map(([code,label])=>`
+    /* ═══ ERROR PAGES ═══ */
+    const ERROR_CODES = [
+      [400, 'Bad Request'],
+      [401, 'Unauthorized'],
+      [403, 'Forbidden'],
+      [404, 'Not Found'],
+      [405, 'Method Not Allowed'],
+      [408, 'Request Timeout'],
+      [413, 'Payload Too Large'],
+      [500, 'Internal Server Error'],
+      [502, 'Bad Gateway'],
+      [503, 'Service Unavailable']
+    ];
+    let selectedError = 404;
+    (function renderErrGrid() {
+      $('err-grid').innerHTML = ERROR_CODES.map(([code, label]) => `
     <div class="err-card" onclick="selectErr(${code})" id="ec-${code}">
       <div class="ec-code">${code}</div>
       <div class="ec-label">${label}</div>
     </div>`).join('');
-  document.getElementById('ec-404').style.borderColor='var(--red)';
-})();
+      document.getElementById('ec-404').style.borderColor = 'var(--red)';
+    })();
 
-function selectErr(code){
-  ERROR_CODES.forEach(([c])=>{ const el=$('ec-'+c); if(el) el.style.borderColor=''; });
-  selectedError = code;
-  $('ec-'+code).style.borderColor='var(--red)';
-  execError(code);
-}
+    function selectErr(code) {
+      ERROR_CODES.forEach(([c]) => { const el = $('ec-' + c); if (el) el.style.borderColor = ''; });
+      selectedError = code;
+      $('ec-' + code).style.borderColor = 'var(--red)';
+      execError(code);
+    }
 
-function previewError(){
-  // craft the same path as execError
-  const code = selectedError;
-  let path;
-  switch(code){
-    case 400: path='/'; break;
-    case 401: path='/protected'; break;
-    case 403: path='/forbidden'; break;
-    case 404: path='/this-path-should-not-exist-'+Date.now(); break;
-    case 405: path='/'; break;
-    case 408: path='/slow'; break;
-    case 413: path='/uploads'; break;
-    case 500: path='/cgi-bin/broken.py'; break;
-    case 502: path='/proxy-broken'; break;
-    case 503: path='/maintenance'; break;
-    default:  path='/error-'+code;
-  }
-  const url = getBaseURL()+path;
-  window.open(url, '_blank');
-  log('GET',url,'preview');
-}
+    function previewError() {
+      // craft the same path as execError
+      const code = selectedError;
+      let path;
+      switch (code) {
+        case 400: path = '/'; break;
+        case 401: path = '/protected'; break;
+        case 403: path = '/forbidden'; break;
+        case 404: path = '/this-path-should-not-exist-' + Date.now(); break;
+        case 405: path = '/'; break;
+        case 408: path = '/slow'; break;
+        case 413: path = '/uploads'; break;
+        case 500: path = '/cgi-bin/broken.py'; break;
+        case 502: path = '/proxy-broken'; break;
+        case 503: path = '/maintenance'; break;
+        default: path = '/error-' + code;
+      }
+      const url = getBaseURL() + path;
+      window.open(url, '_blank');
+      log('GET', url, 'preview');
+    }
 
-async function execError(code){
-  // craft a URL likely to trigger each error
-  let path, method='GET';
-  switch(code){
-    case 400: path='/'; method='INVALID'; break; // can't really send bad HTTP via fetch
-    case 401: path='/protected'; break;
-    case 403: path='/forbidden'; break;
-    case 404: path='/this-path-should-not-exist-'+Date.now(); break;
-    case 405: path='/'; method='PATCH'; break;
-    case 408: path='/slow'; break;
-    case 413: path='/uploads'; method='POST'; break;
-    case 500: path='/cgi-bin/broken.py'; break;
-    case 502: path='/proxy-broken'; break;
-    case 503: path='/maintenance'; break;
-    default:  path='/error-'+code;
-  }
-  const url = getBaseURL()+path;
-  showInfo('err-resp','<span class="d">⏳ Triggering '+code+' →</span> <span class="i">'+url+'</span>');
+    async function execError(code) {
+      // craft a URL likely to trigger each error
+      let path, method = 'GET';
+      switch (code) {
+        case 400: path = '/'; method = 'INVALID'; break; // can't really send bad HTTP via fetch
+        case 401: path = '/protected'; break;
+        case 403: path = '/forbidden'; break;
+        case 404: path = '/this-path-should-not-exist-' + Date.now(); break;
+        case 405: path = '/'; method = 'PATCH'; break;
+        case 408: path = '/slow'; break;
+        case 413: path = '/uploads'; method = 'POST'; break;
+        case 500: path = '/cgi-bin/broken.py'; break;
+        case 502: path = '/proxy-broken'; break;
+        case 503: path = '/maintenance'; break;
+        default: path = '/error-' + code;
+      }
+      const url = getBaseURL() + path;
+      showInfo('err-resp', '<span class="d">⏳ Triggering ' + code + ' →</span> <span class="i">' + url + '</span>');
 
-  try{
-    const opts = { method:(method==='INVALID'||method==='PATCH'||method==='POST')?method:'GET', mode:'cors' };
-    if(code===413){ opts.body='x'.repeat(52*1024*1024); opts.headers={'Content-Type':'text/plain'}; }
-    const res = await fetch(url, opts);
-    const txt = await res.text();
-    log(method,url,res.status);
-    const customPage = $('err-page').value.trim();
-    showResp('err-resp', res.status, txt||'(empty)',
-      `<span class="d">Expected:</span> <span class="v">${code}</span> &nbsp; <span class="d">Got:</span> <span class="${res.status===code?'k':'e'}">${res.status}</span>`+
-      `<br><span class="d">Your error_page path:</span> <span class="i">${customPage}</span>`);
-  } catch(e){
-    log(method,url,0);
-    showResp('err-resp',0,`Server unreachable.\n\nTo trigger ${code}, configure:\n  error_page ${code} ${$('err-page').value.trim()};\n\nThen request: ${path}`,
-      '<span class="d">💡 Add an <code style="color:var(--cyan)">error_page</code> directive in your server block.</span>');
-  }
-}
+      try {
+        const opts = { method: (method === 'INVALID' || method === 'PATCH' || method === 'POST') ? method : 'GET', mode: 'cors' };
+        if (code === 413) { opts.body = 'x'.repeat(52 * 1024 * 1024); opts.headers = { 'Content-Type': 'text/plain' }; }
+        const res = await fetch(url, opts);
+        const txt = await res.text();
+        log(method, url, res.status);
+        const customPage = $('err-page').value.trim();
+        showResp('err-resp', res.status, txt || '(empty)',
+          `<span class="d">Expected:</span> <span class="v">${code}</span> &nbsp; <span class="d">Got:</span> <span class="${res.status === code ? 'k' : 'e'}">${res.status}</span>` +
+          `<br><span class="d">Your error_page path:</span> <span class="i">${customPage}</span>`);
+      } catch (e) {
+        log(method, url, 0);
+        showResp('err-resp', 0, `Server unreachable.\n\nTo trigger ${code}, configure:\n  error_page ${code} ${$('err-page').value.trim()};\n\nThen request: ${path}`,
+          '<span class="d">💡 Add an <code style="color:var(--cyan)">error_page</code> directive in your server block.</span>');
+      }
+    }
 
-/* ─── INIT ─── */
-updateBaseDisplay();
-log('SYS','Tester loaded — configure host/port above',0);
-$('log-body').querySelector('.log-entry .le-status').className='chip';
-</script>
+    /* ─── INIT ─── */
+    updateBaseDisplay();
+    log('SYS', 'Tester loaded — configure host/port above', 0);
+    $('log-body').querySelector('.log-entry .le-status').className = 'chip';
+  </script>
 </body>
+
 </html>
