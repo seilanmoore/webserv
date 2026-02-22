@@ -1,24 +1,30 @@
-#!/usr/bin/env python3
-import sys
 import os
+import sys
+from urllib.parse import parse_qs
 
-# Read POST body from stdin
-content_length = int(os.environ.get('CONTENT_LENGTH', 0))
-post_body = sys.stdin.read(content_length) if content_length > 0 else ""
+method = os.environ.get("REQUEST_METHOD", "GET")
 
-# Output CGI headers
+params = {}
+if method == "GET":
+    query_string = os.environ.get("QUERY_STRING", "")
+    params = parse_qs(query_string)
+elif method == "POST":
+    content_length = int(os.environ.get("CONTENT_LENGTH", 0))
+    post_body = sys.stdin.read(content_length) if content_length > 0 else ""
+    params = parse_qs(post_body)
+
+name = params.get("name", ["Unknown"])[0].upper()
+email = params.get("email", ["Unknown"])[0].upper()
+
 print("Content-Type: text/html")
-print("")
+print()
 
-# Output HTML
-print("<html><head><title>POST Test</title></head>")
-print("<body style='display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh;'>")
-print("<div style='text-align:center;'>")
-print("<h1>POST Data Received</h1>")
-print(f"<p><strong>Request Method:</strong> {os.environ.get('REQUEST_METHOD', 'N/A')}</p>")
-print(f"<p><strong>Content-Type:</strong> {os.environ.get('CONTENT_TYPE', 'N/A')}</p>")
-print(f"<p><strong>Content-Length:</strong> {os.environ.get('CONTENT_LENGTH', 'N/A')}</p>")
-print(f"<p><strong>Query String:</strong> {os.environ.get('QUERY_STRING', 'N/A')}</p>")
-print(f"<p><strong>POST Body:</strong></p>")
-print(f"<pre style='background:#eee;padding:10px;'>{post_body if post_body else '(empty)'}</pre>")
-print("</div></body></html>")
+print("<!DOCTYPE html>")
+print("<html>")
+print("<head><title>Form Result</title></head>")
+print("<body>")
+print("<h1>Data Received</h1>")
+print(f'<p style="color: red; font-size: 24px; font-weight: bold;">Name: {name}</p>')
+print(f'<p style="color: red; font-size: 24px; font-weight: bold;">Email: {email}</p>')
+print("</body>")
+print("</html>")
