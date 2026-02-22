@@ -1,6 +1,6 @@
 <?php
 // Output CGI headers
-header('Content-Type: text/html');
+header('Content-Type: text/html; charset=UTF-8');
 
 // Get environment variables
 $method = getenv('REQUEST_METHOD') ?: 'N/A';
@@ -18,7 +18,7 @@ $php_version = phpversion();
         <p>Request Method: <?php echo $method; ?></p>
         <p>Query String: <?php echo htmlspecialchars($query); ?></p>
         <hr>
-        <form action='/docs/html/index.html' method='get'>
+        <form action='/index.html' method='get'>
             <button type='submit'>Back to Home</button>
         </form>
     </div>

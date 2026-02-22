@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Output CGI headers
-echo "Content-Type: text/html"
+echo "Content-Type: text/html; charset=UTF-8"
 echo ""
 
 # Get values
@@ -20,7 +20,7 @@ cat << EOF
         <p>Request Method: ${REQUEST_METHOD:-N/A}</p>
         <p>Query String: ${QUERY_STRING:-N/A}</p>
         <hr>
-        <form action='/docs/html/index.html' method='get'>
+        <form action='/index.html' method='get'>
             <button type='submit'>Back to Home</button>
         </form>
     </div>

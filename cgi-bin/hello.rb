@@ -1,7 +1,7 @@
 #!/usr/bin/ruby
 
 # Output CGI headers
-puts "Content-Type: text/html"
+puts "Content-Type: text/html; charset=UTF-8"
 puts ""
 
 # Get environment variables
@@ -22,7 +22,7 @@ puts <<EOF
         <p>Request Method: #{method}</p>
         <p>Query String: #{query}</p>
         <hr>
-        <form action='/docs/html/index.html' method='get'>
+        <form action='/index.html' method='get'>
             <button type='submit'>Back to Home</button>
         </form>
     </div>

@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 # Output CGI headers
-print "Content-Type: text/html\n\n";
+print "Content-Type: text/html; charset=UTF-8\n\n";
 
 # Get environment variables
 my $method = $ENV{'REQUEST_METHOD'} || 'N/A';
@@ -27,7 +27,7 @@ print << "EOF";
         <p>Request Method: $method</p>
         <p>Query String: $query</p>
         <hr>
-        <form action='/docs/html/index.html' method='get'>
+        <form action='/index.html' method='get'>
             <button type='submit'>Back to Home</button>
         </form>
     </div>
