@@ -1,53 +1,460 @@
-<!-- <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Hello world!</title>
-</head>
-<body>
-    <div style="text-align:center;">
-    <h1>Hello world!</h1>
-    <p>Welcome to the C++ web server!</p>
-    <form action="/about" method="get" style="display:inline;">
-        <button type="submit">About</button>
-    </form>
-    <form action="/makelele" method="get" style="display:inline;">
-        <button type="submit">Makelele</button>
-    </form>
-    <form action="/cgi-bin/fortune.py" method="get" style="display:inline;">
-        <button type="submit">Get a fortune</button>
-    </form>
-    </div>
-</body>
-</html> -->
-
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mi Sitio Estático</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Webserv Tester</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #1a1a2e;
+      color: #e0e0e0;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #e94560;
+      margin-bottom: 30px;
+      font-size: 2em;
+    }
+
+    h2 {
+      color: #0f3460;
+      background: #e94560;
+      display: inline-block;
+      padding: 6px 16px;
+      border-radius: 4px;
+      margin-bottom: 12px;
+      font-size: 1.1em;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+      gap: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: #16213e;
+      border: 1px solid #0f3460;
+      border-radius: 8px;
+      padding: 20px;
+    }
+
+    .card p {
+      margin: 6px 0;
+      font-size: 0.9em;
+      color: #aaa;
+    }
+
+    button,
+    input[type="submit"] {
+      background: #e94560;
+      color: #fff;
+      border: none;
+      padding: 8px 18px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.9em;
+      margin: 4px 2px;
+      transition: background 0.2s;
+    }
+
+    button:hover,
+    input[type="submit"]:hover {
+      background: #c73651;
+    }
+
+    button.green {
+      background: #27ae60;
+    }
+
+    button.green:hover {
+      background: #1e8449;
+    }
+
+    button.blue {
+      background: #2980b9;
+    }
+
+    button.blue:hover {
+      background: #1f6da0;
+    }
+
+    button.orange {
+      background: #e67e22;
+    }
+
+    button.orange:hover {
+      background: #c76b15;
+    }
+
+    button.red {
+      background: #c0392b;
+    }
+
+    button.red:hover {
+      background: #a93226;
+    }
+
+    input[type="text"],
+    input[type="file"],
+    textarea,
+    select {
+      background: #1a1a2e;
+      color: #e0e0e0;
+      border: 1px solid #0f3460;
+      padding: 6px 10px;
+      border-radius: 4px;
+      width: 100%;
+      margin: 4px 0;
+      font-size: 0.9em;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 60px;
+    }
+
+    pre#response {
+      background: #0d1117;
+      color: #c9d1d9;
+      padding: 16px;
+      border-radius: 6px;
+      max-height: 400px;
+      overflow: auto;
+      font-size: 0.85em;
+      white-space: pre-wrap;
+      word-break: break-word;
+      border: 1px solid #0f3460;
+      margin-top: 20px;
+      max-width: 1200px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .status {
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+
+    .status.ok {
+      color: #27ae60;
+    }
+
+    .status.err {
+      color: #e94560;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 3px;
+      font-size: 0.75em;
+      font-weight: bold;
+      margin-right: 4px;
+      vertical-align: middle;
+    }
+
+    .badge.get {
+      background: #27ae60;
+    }
+
+    .badge.post {
+      background: #2980b9;
+    }
+
+    .badge.delete {
+      background: #c0392b;
+    }
+
+    .badge.cgi {
+      background: #8e44ad;
+    }
+
+    hr {
+      border: none;
+      border-top: 1px solid #0f3460;
+      margin: 10px 0;
+    }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 8px;
+    }
+  </style>
 </head>
+
 <body>
 
-    <header>
-        <h1>Bienvenido a mi sitio estático</h1>
-    </header>
+  <h1>&#9881; Webserv Test Panel</h1>
 
-    <main>
-        <p>Este sitio utiliza HTML, CSS y JavaScript.</p>
-        
-        <div class="image-container">
-            <img src="./png/makelele.png" alt="Makelele" style="display:block;margin:auto;max-width:400px;">
-        </div>
+  <div class="grid">
 
-        <!-- <button id="miBoton">¡Haz clic aquí!</button> -->
-    </main>
+    <!-- ==================== GET TESTS ==================== -->
+    <div class="card">
+      <h2><span class="badge get">GET</span> Basic Requests</h2>
+      <p>Test GET on various locations defined in default.conf</p>
+      <hr>
+      <div class="btn-row">
+        <button class="green" onclick="doFetch('GET', '/')">/ (index)</button>
+        <button class="green" onclick="doFetch('GET', '/about')">/ about</button>
+        <button class="green" onclick="doFetch('GET', '/index.html')">/index.html</button>
+        <button class="green" onclick="doFetch('GET', '/test.html')">/test.html</button>
+      </div>
+      <hr>
+      <p>Autoindex (directory listing)</p>
+      <div class="btn-row">
+        <button class="green" onclick="doFetch('GET', '/files')">/files (uploads)</button>
+        <button class="green" onclick="doFetch('GET', '/errors/')">/errors/</button>
+      </div>
+      <hr>
+      <p>Custom path</p>
+      <input type="text" id="get-path" placeholder="/some/path" value="/">
+      <button class="green" onclick="doFetch('GET', document.getElementById('get-path').value)">GET</button>
+    </div>
 
-    <form action="/cgi-bin/fortune.py" method="get" style="display:inline;">
-        <button type="submit">Get a fortune</button>
-    <!-- <script src="/cgi-bin/fortune.py"></script> -->
-    <!-- <script src="script.js"></script> -->
+    <!-- ==================== ERROR & REDIRECT TESTS ==================== -->
+    <div class="card">
+      <h2><span class="badge get">GET</span> Errors &amp; Redirects</h2>
+      <p>Test error pages and redirect responses</p>
+      <hr>
+      <p>Error pages</p>
+      <div class="btn-row">
+        <button class="orange" onclick="doFetch('GET', '/nonexistent')">404 Not Found</button>
+        <button class="orange" onclick="doFetch('GET', '/no_permissions')">403 Forbidden</button>
+        <button class="orange" onclick="doFetch('DELETE', '/')">405 Method Not Allowed</button>
+      </div>
+      <hr>
+      <p>Redirects</p>
+      <div class="btn-row">
+        <button class="blue" onclick="doFetch('GET', '/old-page', true)">301 /old-page</button>
+      </div>
+      <hr>
+      <p>Static location (no autoindex)</p>
+      <div class="btn-row">
+        <button class="green" onclick="doFetch('GET', '/static')">/static</button>
+        <button class="green" onclick="doFetch('GET', '/static/index.html')">/static/index.html</button>
+      </div>
+    </div>
+
+    <!-- ==================== POST TESTS ==================== -->
+    <div class="card">
+      <h2><span class="badge post">POST</span> Form &amp; Data</h2>
+      <p>Test POST to / (allowed) and via CGI</p>
+      <hr>
+      <p>POST form data to CGI</p>
+      <form id="post-form" onsubmit="return postForm(event)">
+        <input type="text" id="post-name" placeholder="Your name" value="webserv">
+        <input type="text" id="post-msg" placeholder="Message" value="Hello from test page!">
+        <input type="submit" value="POST to /cgi-bin/post_test.py" class="blue">
+      </form>
+      <hr>
+      <p>POST raw body</p>
+      <textarea id="post-body" placeholder="Raw body content">{"key": "value", "test": true}</textarea>
+      <div class="btn-row">
+        <button class="blue" onclick="postRaw('/cgi-bin/post_test.py', 'application/json')">POST JSON to CGI</button>
+        <button class="blue" onclick="postRaw('/', 'text/plain')">POST to /</button>
+      </div>
+    </div>
+
+    <!-- ==================== FILE UPLOAD (POST) ==================== -->
+    <div class="card">
+      <h2><span class="badge post">POST</span> File Upload</h2>
+      <p>Upload files to /upload (upload_store ./uploads)</p>
+      <hr>
+      <form id="upload-form" onsubmit="return uploadFile(event)">
+        <input type="file" id="upload-file">
+        <br>
+        <input type="submit" value="Upload File" class="blue">
+      </form>
+      <hr>
+      <p>After uploading, check the file listing:</p>
+      <button class="green" onclick="doFetch('GET', '/files')">List /files</button>
+    </div>
+
+    <!-- ==================== DELETE TESTS ==================== -->
+    <div class="card">
+      <h2><span class="badge delete">DELETE</span> Delete Files</h2>
+      <p>Delete uploaded files via /upload (limit_except POST DELETE)</p>
+      <hr>
+      <p>First, list uploaded files:</p>
+      <button class="green" onclick="doFetch('GET', '/files')">List /files</button>
+      <hr>
+      <p>Enter filename to delete from uploads:</p>
+      <input type="text" id="delete-filename" placeholder="filename.txt">
+      <div class="btn-row">
+        <button class="red" onclick="doDelete()">DELETE file</button>
+      </div>
+      <hr>
+      <p>Try DELETE on disallowed locations:</p>
+      <div class="btn-row">
+        <button class="orange" onclick="doFetch('DELETE', '/')">DELETE / (405)</button>
+        <button class="orange" onclick="doFetch('DELETE', '/about')">DELETE /about (405)</button>
+      </div>
+    </div>
+
+    <!-- ==================== CGI TESTS ==================== -->
+    <div class="card">
+      <h2><span class="badge cgi">CGI</span> Script Execution</h2>
+      <p>Test CGI scripts in /cgi-bin</p>
+      <hr>
+      <p>Python CGI</p>
+      <div class="btn-row">
+        <button onclick="doFetch('GET', '/cgi-bin/fortune.py')">fortune.py</button>
+        <button onclick="doFetch('GET', '/cgi-bin/prediction.py')">prediction.py</button>
+        <button onclick="doFetch('GET', '/cgi-bin/test_cwd.py')">test_cwd.py</button>
+      </div>
+      <hr>
+      <p>Bash / Perl / Ruby / PHP CGI</p>
+      <div class="btn-row">
+        <button onclick="doFetch('GET', '/cgi-bin/hello.sh')">hello.sh</button>
+        <button onclick="doFetch('GET', '/cgi-bin/hello.pl')">hello.pl</button>
+        <button onclick="doFetch('GET', '/cgi-bin/hello.rb')">hello.rb</button>
+        <button onclick="doFetch('GET', '/cgi-bin/hello.php')">hello.php</button>
+      </div>
+      <hr>
+      <p>CGI with query string</p>
+      <input type="text" id="cgi-qs" placeholder="name=test&lang=en" value="name=webserv&lang=en">
+      <button onclick="doFetch('GET', '/cgi-bin/fortune.py?' + document.getElementById('cgi-qs').value)">GET with
+        query</button>
+      <hr>
+      <p>CGI error scripts</p>
+      <div class="btn-row">
+        <button class="orange" onclick="doFetch('GET', '/cgi-bin/error_empty.py')">empty output</button>
+        <button class="orange" onclick="doFetch('GET', '/cgi-bin/error_exit.py')">bad exit</button>
+        <button class="orange" onclick="doFetch('GET', '/cgi-bin/error_runtime.py')">runtime err</button>
+        <button class="orange" onclick="doFetch('GET', '/cgi-bin/error_syntax.py')">syntax err</button>
+        <button class="orange" onclick="doFetch('GET', '/cgi-bin/error_infinite.py')">infinite loop</button>
+        <button class="orange" onclick="doFetch('GET', '/cgi-bin/slow.py')">slow.py</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ==================== RESPONSE OUTPUT ==================== -->
+  <h2 style="max-width:1200px;margin:24px auto 0;">Response</h2>
+  <pre id="response">Click a button above to send a request...</pre>
+
+  <script>
+    const output = document.getElementById('response');
+
+    function showResponse(method, url, status, statusText, headers, body) {
+      const headerStr = [...headers.entries()].map(([k, v]) => `  ${k}: ${v}`).join('\n');
+      output.textContent =
+        `── Request ──────────────────────────────\n` +
+        `${method} ${url}\n\n` +
+        `── Response ─────────────────────────────\n` +
+        `Status: ${status} ${statusText}\n\n` +
+        `Headers:\n${headerStr}\n\n` +
+        `Body:\n${body}`;
+      output.scrollTop = 0;
+    }
+
+    function showError(method, url, err) {
+      output.textContent =
+        `── Request ──────────────────────────────\n` +
+        `${method} ${url}\n\n` +
+        `── Error ────────────────────────────────\n` +
+        `${err}`;
+    }
+
+    async function doFetch(method, url, noRedirect) {
+      try {
+        const opts = { method };
+        if (noRedirect) opts.redirect = 'manual';
+        const res = await fetch(url, opts);
+        const body = await res.text();
+        showResponse(method, url, res.status, res.statusText, res.headers, body);
+      } catch (e) {
+        showError(method, url, e.message);
+      }
+    }
+
+    async function postForm(event) {
+      event.preventDefault();
+      const name = document.getElementById('post-name').value;
+      const msg = document.getElementById('post-msg').value;
+      const url = '/cgi-bin/post_test.py';
+      const body = `name=${encodeURIComponent(name)}&message=${encodeURIComponent(msg)}`;
+      try {
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: body
+        });
+        const text = await res.text();
+        showResponse('POST', url, res.status, res.statusText, res.headers, text);
+      } catch (e) {
+        showError('POST', url, e.message);
+      }
+      return false;
+    }
+
+    async function postRaw(url, contentType) {
+      const body = document.getElementById('post-body').value;
+      try {
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': contentType },
+          body: body
+        });
+        const text = await res.text();
+        showResponse('POST', url, res.status, res.statusText, res.headers, text);
+      } catch (e) {
+        showError('POST', url, e.message);
+      }
+    }
+
+    async function uploadFile(event) {
+      event.preventDefault();
+      const fileInput = document.getElementById('upload-file');
+      if (!fileInput.files.length) {
+        output.textContent = 'No file selected.';
+        return false;
+      }
+      const formData = new FormData();
+      formData.append('file', fileInput.files[0]);
+      const url = '/upload';
+      try {
+        const res = await fetch(url, { method: 'POST', body: formData });
+        const text = await res.text();
+        showResponse('POST', url, res.status, res.statusText, res.headers, text);
+      } catch (e) {
+        showError('POST', url, e.message);
+      }
+      return false;
+    }
+
+    async function doDelete() {
+      const filename = document.getElementById('delete-filename').value.trim();
+      if (!filename) {
+        output.textContent = 'Enter a filename to delete.';
+        return;
+      }
+      const url = '/upload/' + encodeURIComponent(filename);
+      try {
+        const res = await fetch(url, { method: 'DELETE' });
+        const text = await res.text();
+        showResponse('DELETE', url, res.status, res.statusText, res.headers, text);
+      } catch (e) {
+        showError('DELETE', url, e.message);
+      }
+    }
+  </script>
+
 </body>
+
 </html>
