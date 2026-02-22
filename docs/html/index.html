@@ -266,7 +266,6 @@
       <textarea id="post-body" placeholder="Raw body content">{"key": "value", "test": true}</textarea>
       <div class="btn-row">
         <button class="blue" onclick="postRaw('/cgi-bin/post_test.py', 'application/json')">POST JSON to CGI</button>
-        <button class="blue" onclick="postRaw('/', 'text/plain')">POST to /</button>
       </div>
     </div>
 
@@ -326,11 +325,6 @@
         <button onclick="doFetch('GET', '/cgi-bin/hello.php')">hello.php</button>
       </div>
       <hr>
-      <p>CGI with query string</p>
-      <input type="text" id="cgi-qs" placeholder="name=test&lang=en" value="name=webserv&lang=en">
-      <button onclick="doFetch('GET', '/cgi-bin/fortune.py?' + document.getElementById('cgi-qs').value)">GET with
-        query</button>
-      <hr>
       <p>CGI error scripts</p>
       <div class="btn-row">
         <button class="orange" onclick="doFetch('GET', '/cgi-bin/error_empty.py')">empty output</button>
@@ -341,14 +335,10 @@
         <button class="orange" onclick="doFetch('GET', '/cgi-bin/slow.py')">slow.py</button>
       </div>
       <hr>
-      <p>CGI POST test</p>
-      <form action="/cgi-bin/post_test.py" method="POST">
-        <input type="text" id="name" name="name" placeholder="name">
-        <br>
-        <input type="text" id="email" name="email" placeholder="email">
-        <br>
-        <button type="submit">POST name and email</button>
-      </form>
+      <p>CGI with query string</p>
+      <input type="text" id="cgi-qs" placeholder="e.g. name=foo&email=example@email.com">
+      <button onclick="doFetch('GET', '/cgi-bin/post_test.py?' + document.getElementById('cgi-qs').value)">GET with
+        query</button>
     </div>
 
   </div>
