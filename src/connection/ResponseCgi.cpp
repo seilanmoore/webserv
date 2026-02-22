@@ -129,14 +129,11 @@ bool Response::startCgi(Request &request, const std::string &scriptPath,
       envp.push_back(const_cast<char *>(envVars[i].c_str()));
     envp.push_back(NULL);
 
-    char interpBuf[1024], scriptBuf[256];
-    strncpy(interpBuf, absInterpreter.c_str(), 1023);
-    interpBuf[1023] = '\0';
-    strncpy(scriptBuf, scriptName.c_str(), 255);
-    scriptBuf[255] = '\0';
+    const char *interpBuf = absInterpreter.c_str();
+    const char *scriptBuf = scriptName.c_str();
 
-    char *argv[3] = {interpBuf, scriptBuf, NULL};
-    execve(argv[0], argv, &envp[0]);
+    const char *argv[] = {interpBuf, scriptBuf, NULL};
+    execve(argv[0], const_cast<char *const *>(argv), &envp[0]);
     DEBUG_PRINT(errorStr(errno));
     DEBUG_VAR("Script execution fail", scriptName);
     std::_Exit(1);
