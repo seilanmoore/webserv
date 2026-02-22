@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Server.cpp                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/09/08 14:07:21 by smoore-a          #+#    #+#             */
-/*   Updated: 2026/01/14 19:47:54 by smoore-a         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "Server.hpp"
 
 #include <arpa/inet.h>  // htons()
@@ -24,16 +12,6 @@
 #include <stdexcept>
 
 #include "utils.hpp"
-
-// Server::Server(const sDirectives *httpDirective, const sServer &config)
-//     : _genericDir(httpDirective),
-//       _config(config),
-//     :  _address(),
-//       _fd(),
-//       _name(httpDirective->serverName),
-//       _port()
-// {
-// }
 
 Server::Server()
     : _name(""), _port()
@@ -65,12 +43,6 @@ int Server::setupServer(const std::string &name, uint16_t port)
     std::cerr << errorStr(errno) << '\n';
     return -1;
   }
-
-  // if (makeSocketNonBlocking(_fd) == -1)
-  // {
-  //   std::cerr << errorStr(errno) << '\n';
-  //   return -1;
-  // }
 
   _address.sin_family = AF_INET;
   _address.sin_addr.s_addr = INADDR_ANY;
@@ -134,15 +106,11 @@ void Server::setConnection(int fd, Connection *connection)
   ++_nConnection;
 }
 
-// MANDATORY USELESS TRASH
-
-// unusable overload
 Server::Server(const Server &other)
 {
   (void)other;
 }
 
-// unusable overload
 Server &Server::operator=(const Server &other)
 {
   (void)other;

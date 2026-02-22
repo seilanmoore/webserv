@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Request.cpp                                        :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/10/02 20:00:09 by smoore-a          #+#    #+#             */
-/*   Updated: 2026/02/14 13:18:59 by smoore-a         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include <iostream>
 #include <sstream>
 #include <cstdlib>
@@ -71,17 +59,14 @@ void Request::parse(const std::string &rawRequest)
     std::istringstream iss(rawRequest);
     std::string line;
 
-    // Parse request line (first line)
     if (std::getline(iss, line))
     {
-        // Remove trailing \r if present
         if (!line.empty() && line[line.length() - 1] == '\r')
             line.erase(line.length() - 1);
 
         std::istringstream firstLine(line);
         firstLine >> _method >> _uri >> _version;
 
-        // Parse path and query string from URI
         _path = _uri;
         size_t qpos = _path.find('?');
         if (qpos != std::string::npos)
@@ -94,7 +79,6 @@ void Request::parse(const std::string &rawRequest)
             _queryString = "";
         }
 
-        // Set file extension
         size_t dot = _path.find_last_of('.');
         size_t slash = _path.find_last_of('/');
         if (dot != std::string::npos && (slash == std::string::npos || dot > slash))
@@ -103,10 +87,8 @@ void Request::parse(const std::string &rawRequest)
             _fileExtension = "";
     }
 
-    // Parse headers
     while (std::getline(iss, line))
     {
-        // Remove trailing \r
         if (!line.empty() && line[line.length() - 1] == '\r')
             line.erase(line.length() - 1);
 
@@ -118,14 +100,12 @@ void Request::parse(const std::string &rawRequest)
         {
             std::string key = line.substr(0, sep);
             std::string value = line.substr(sep + 1);
-            // Trim leading whitespace from value
             size_t start = value.find_first_not_of(" \t");
             if (start != std::string::npos)
                 value = value.substr(start);
 
             _otherHeaders[key] = value;
 
-            // Handle specific headers
             if (key == "Host")
                 _host = value;
             else if (key == "Content-Type")
@@ -152,7 +132,6 @@ void Request::parse(const std::string &rawRequest)
             else if (key == "Transfer-Encoding")
             {
                 _transferEncoding = value;
-                // Check for chunked encoding (case-insensitive)
                 std::string lower = value;
                 for (size_t i = 0; i < lower.length(); ++i)
                     lower[i] = static_cast<char>(std::tolower(static_cast<unsigned char>(lower[i])));
@@ -223,29 +202,18 @@ void Request::setBody(const char *buffer, ssize_t readBytes)
 
 bool Request::decodeChunks()
 {
-    // Parse chunked encoding format:
-    // <chunk-size in hex>\r\n
-    // <chunk-data>\r\n
-    // ... repeat ...
-    // 0\r\n
-    // \r\n (optional trailer headers)
-
     while (true)
     {
-        // Find the chunk size line
         size_t lineEnd = _chunkBuffer.find("\r\n");
         if (lineEnd == std::string::npos)
-            return false; // Need more data
+            return false;
 
-        // Parse hex chunk size
         std::string sizeLine = _chunkBuffer.substr(0, lineEnd);
 
-        // Remove any chunk extensions (after ;)
         size_t semiPos = sizeLine.find(';');
         if (semiPos != std::string::npos)
             sizeLine = sizeLine.substr(0, semiPos);
 
-        // Convert hex to size
         size_t chunkSize = 0;
         for (size_t i = 0; i < sizeLine.length(); ++i)
         {
@@ -258,35 +226,30 @@ bool Request::decodeChunks()
             else if (c >= 'A' && c <= 'F')
                 chunkSize += static_cast<size_t>(c - 'A' + 10);
             else
-                break; // Invalid character, stop parsing
+                break;
         }
 
-        // Check if this is the final chunk (size 0)
         if (chunkSize == 0)
         {
-            // Look for final CRLF after 0\r\n
             size_t trailerStart = lineEnd + 2;
             size_t finalCrlf = _chunkBuffer.find("\r\n", trailerStart);
             if (finalCrlf == std::string::npos)
-                return false; // Need more data for trailer
+                return false;
 
             _chunkedDone = true;
             _contentLength = _body.size();
             return true;
         }
 
-        // Check if we have enough data for this chunk
         size_t dataStart = lineEnd + 2;
-        size_t chunkEnd = dataStart + chunkSize + 2; // +2 for trailing CRLF
+        size_t chunkEnd = dataStart + chunkSize + 2;
 
         if (_chunkBuffer.size() < chunkEnd)
-            return false; // Need more data
+            return false;
 
-        // Extract chunk data and add to body
         const char *chunkData = _chunkBuffer.data() + dataStart;
         _body.insert(_body.end(), chunkData, chunkData + chunkSize);
 
-        // Remove processed chunk from buffer
         _chunkBuffer.erase(0, chunkEnd);
     }
 

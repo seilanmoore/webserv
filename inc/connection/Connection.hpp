@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Connection.hpp                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/09/21 14:26:07 by smoore-a          #+#    #+#             */
-/*   Updated: 2025/10/10 11:35:45 by smoore-a         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #ifndef CONNECTION_HPP
 #define CONNECTION_HPP
 
@@ -45,9 +33,8 @@ public:
 
   bool shouldKeepAlive() const;
 
-  // CGI support
   bool hasPendingCgi() const;
-  Response *getResponsePtr() { return _response; }
+  Response *getResponsePtr();
 
 private:
   int _fd;

@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Webserv.hpp                                        :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/09/09 12:36:27 by smoore-a          #+#    #+#             */
-/*   Updated: 2026/02/05 11:15:35 by smoore-a         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #ifndef WEBSERV_HPP
 #define WEBSERV_HPP
 
@@ -44,7 +32,7 @@ public:
   void addPollFD(int fd, tPollFDType fdType);
   void deletePollFD(nfds_t &pos);
   void deletePollFD(int fd);
-  void removePollFD(nfds_t &pos); // Remove from poll without closing fd
+  void removePollFD(nfds_t &pos);
 
   int addServer(const ServerConf &c);
   void deleteServer(int fd);
@@ -61,15 +49,14 @@ private:
   nfds_t _nPollFD;
 
   std::map<int, Server *> _server;
-  std::map<int, size_t> _serverConfigIndex; // Maps server FD to config index
+  std::map<int, size_t> _serverConfigIndex;
   nfds_t _nRunningServer;
 
   std::map<int, Connection *> _connection;
   nfds_t _nConnection;
 
-  // CGI state management
-  std::map<int, CgiState *> _cgiByPipe;       // Maps pipe FD to CGI state
-  std::map<int, CgiState *> _cgiByConnection; // Maps connection FD to CGI state
+  std::map<int, CgiState *> _cgiByPipe;
+  std::map<int, CgiState *> _cgiByConnection;
 
   void handleCgiStdin(nfds_t &pos);
   void handleCgiStdinError(nfds_t &pos);

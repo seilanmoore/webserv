@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   ResponseCgi.cpp                                    :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/01/14 19:00:00 by smoore-a          #+#    #+#             */
-/*   Updated: 2026/02/06 19:29:15 by smoore-a         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "Response.hpp"
 
 #include <sys/wait.h>
@@ -32,8 +20,6 @@
 void Response::handleCgi(Request &request, const std::string &scriptPath,
                          const std::string &interpreter)
 {
-  // Start CGI process - returns immediately, CGI runs asynchronously
-  // The actual response will be built later when CGI completes
   startCgi(request, scriptPath, interpreter);
 }
 
@@ -95,7 +81,6 @@ bool Response::startCgi(Request &request, const std::string &scriptPath,
 
   if (pid == 0)
   {
-    // Child process
     close(pipeIn[1]);
     close(pipeOut[0]);
     dup2(pipeIn[0], STDIN_FILENO);
@@ -103,14 +88,6 @@ bool Response::startCgi(Request &request, const std::string &scriptPath,
     close(pipeIn[0]);
     close(pipeOut[1]);
 
-    // if (!interpreter.empty() && interpreter[0] != '/')
-    // {
-    //   char cwd[1024];
-    //   if (getcwd(cwd, sizeof(cwd)))
-    //     absInterpreter = std::string(cwd) + "/" + interpreter;
-    // }
-
-    // Change to script directory
     std::string scriptName = scriptPath;
     std::string scriptDir = ".";
     size_t lastSlash = scriptPath.find_last_of('/');
@@ -121,7 +98,6 @@ bool Response::startCgi(Request &request, const std::string &scriptPath,
       chdir(scriptDir.c_str());
     }
 
-    // Build environment
     std::vector<std::string> envVars;
     envVars.push_back("REQUEST_METHOD=" + request.getMethod());
     envVars.push_back("QUERY_STRING=" + request.getQueryString());
@@ -136,7 +112,6 @@ bool Response::startCgi(Request &request, const std::string &scriptPath,
     envVars.push_back("PATH_INFO=" + request.getPath());
     envVars.push_back("REDIRECT_STATUS=200");
 
-    // Add HTTP headers
     const std::map<std::string, std::string> &headers = request.getOtherHeaders();
     for (std::map<std::string, std::string>::const_iterator it = headers.begin(); it != headers.end(); ++it)
     {
@@ -167,19 +142,15 @@ bool Response::startCgi(Request &request, const std::string &scriptPath,
     std::_Exit(1);
   }
 
-  // Parent process - set up non-blocking CGI state
   close(pipeIn[0]);
   close(pipeOut[1]);
 
-  // Make pipes non-blocking (only F_SETFL and O_NONBLOCK allowed per subject)
   fcntl(pipeIn[1], F_SETFL, O_NONBLOCK);
   fcntl(pipeOut[0], F_SETFL, O_NONBLOCK);
 
-  // Initialize CGI state
   _cgiState.pid = pid;
   _cgiState.stdinFd = pipeIn[1];
   _cgiState.stdoutFd = pipeOut[0];
-  // Use swap to move body data without copying (critical for large bodies)
   _cgiState.inputData.swap(request.getBodyMutable());
   _cgiState.inputWritten = 0;
   _cgiState.outputData.clear();
@@ -187,7 +158,6 @@ bool Response::startCgi(Request &request, const std::string &scriptPath,
   _cgiState.active = true;
   _cgiState.pollCycles = 0;
 
-  // If no body to write, close stdin immediately
   if (_cgiState.inputData.empty())
   {
     close(_cgiState.stdinFd);
@@ -203,7 +173,6 @@ void Response::finalizeCgiResponse()
   if (!_cgiState.active)
     return;
 
-  // Close remaining pipes
   if (_cgiState.stdinFd >= 0)
   {
     close(_cgiState.stdinFd);
@@ -215,7 +184,6 @@ void Response::finalizeCgiResponse()
     _cgiState.stdoutFd = -1;
   }
 
-  // Wait for child
   if (_cgiState.pid > 0)
   {
     int status;
@@ -225,7 +193,6 @@ void Response::finalizeCgiResponse()
 
   _cgiState.active = false;
 
-  // Process CGI output and build response
   const std::string &cgiOutput = _cgiState.outputData;
   if (!cgiOutput.empty())
   {
@@ -257,7 +224,6 @@ void Response::finalizeCgiResponse()
             normalizedHeaders += headers[i];
         }
 
-        // Ensure headers end with \r\n for proper formatting
         if (normalizedHeaders.size() >= 2 &&
             normalizedHeaders.substr(normalizedHeaders.size() - 2) != "\r\n")
         {

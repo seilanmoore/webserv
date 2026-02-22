@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Server.hpp                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/09/08 14:06:57 by smoore-a          #+#    #+#             */
-/*   Updated: 2026/02/05 11:10:02 by smoore-a         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
@@ -21,7 +9,6 @@
 #include <map>
 #include <string>
 
-// #include "Config.hpp"
 #include "Connection.hpp"
 
 typedef struct sockaddr_in t_sockaddr_in;
@@ -54,7 +41,6 @@ private:
   std::map<int, Connection *> _connection;
   nfds_t _nConnection;
 
-  // MANDATORY CLASS MEMBERS
   Server(const Server &other);
   Server &operator=(const Server &other);
 };

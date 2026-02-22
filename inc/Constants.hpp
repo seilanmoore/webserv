@@ -1,61 +1,22 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Constants.hpp                                      :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/01/14 20:00:00 by smoore-a          #+#    #+#             */
-/*   Updated: 2026/01/14 19:11:49 by smoore-a         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #ifndef CONSTANTS_HPP
 #define CONSTANTS_HPP
 
-#include <cstddef>
+#define DEFAULT_CONFIG_FILE_PATH "./config/default.conf"
 
-// ============================================================================
-// File Paths
-// ============================================================================
+#define MAX_FD 1021
 
-#define DEFAULT_CONFIG_FILE_PATH "./config/test.conf"
+#define BUFFER_SIZE 65536
 
-// ============================================================================
-// Network Constants
-// ============================================================================
+#define POLL_TIMEOUT_MS 5000
 
-// Maximum number of file descriptors to poll
-static const size_t MAX_FD = 1021;
+#define CHUNK_SIZE 8192
 
-// Buffer size for reading/writing data
-static const size_t BUFFER_SIZE = 65536;
+#define CHUNKED_THRESHOLD 10485760
 
-// Poll timeout in milliseconds
-static const int POLL_TIMEOUT_MS = 5000;
+#define DEFAULT_CLIENT_MAX_BODY_SIZE 1048576
 
-// ============================================================================
-// HTTP Constants
-// ============================================================================
+#define CGI_BUFFER_SIZE 65536
 
-// Chunk size for chunked transfer encoding
-static const size_t CHUNK_SIZE = 8192;
-
-// Threshold for using chunked encoding (10 MB)
-static const size_t CHUNKED_THRESHOLD = 10485760;
-
-// Default client max body size (1 MB)
-static const size_t DEFAULT_CLIENT_MAX_BODY_SIZE = 1048576;
-
-// ============================================================================
-// CGI Constants
-// ============================================================================
-
-// CGI read/write buffer size
-static const size_t CGI_BUFFER_SIZE = 65536;
-
-// CGI timeout in poll cycles (with 5000ms poll timeout, ~1 cycle = 5 seconds max)
-// Set to 2 cycles for ~10 seconds timeout
-static const int CGI_TIMEOUT_CYCLES = 500;
+#define CGI_TIMEOUT_CYCLES 500
 
 #endif

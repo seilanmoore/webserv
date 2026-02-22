@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Response.hpp                                       :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/09/21 14:26:27 by smoore-a          #+#    #+#             */
-/*   Updated: 2026/02/14 15:56:36 by smoore-a         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #ifndef RESPONSE_HPP
 #define RESPONSE_HPP
 
@@ -36,19 +24,15 @@ public:
 
   ssize_t sendResponse(int fd);
 
-  // Non-blocking CGI methods (public for Webserv access)
   void finalizeCgiResponse();
 
-  // Set raw response (for timeouts, errors)
   void setRawResponse(const std::string &response);
 
-  // CGI state accessors
   bool hasPendingCgi() const;
   CgiState &getCgiInfo();
   const CgiState &getCgiInfo() const;
 
 private:
-  // Status
   int _statusCode;
   std::string _statusMessage;
 
@@ -67,18 +51,14 @@ private:
   ssize_t _contentLength;
   std::string _response;
 
-  // Chunked transfer encoding
   bool _useChunked;
   bool _headersSent;
   size_t _chunkOffset;
 
-  // HEAD request flag - body should not be sent
   bool _isHeadRequest;
 
-  // CGI state for non-blocking operation
   CgiState _cgiState;
 
-  // Private methods
   void handleGet(Request &request, const ServerConfig &server,
                  const LocationConfig *location);
   void handlePost(Request &request, const ServerConfig &server,
@@ -95,7 +75,6 @@ private:
   void handleCgi(Request &request, const std::string &scriptPath,
                  const std::string &interpreter);
 
-  // Non-blocking CGI methods (private helpers)
   bool startCgi(Request &request, const std::string &scriptPath,
                 const std::string &interpreter);
 };

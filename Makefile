@@ -1,16 +1,4 @@
-# **************************************************************************** #
-#                                                                              #
-#                                                         :::      ::::::::    #
-#    Makefile                                           :+:      :+:    :+:    #
-#                                                     +:+ +:+         +:+      #
-#    By: smoore-a <smoore-a@student.42.fr>          +#+  +:+       +#+         #
-#                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2025/09/08 14:07:03 by smoore-a          #+#    #+#              #
-#    Updated: 2026/01/22 16:28:22 by smoore-a         ###   ########.fr        #
-#                                                                              #
-# **************************************************************************** #
-
-CC = clang++ -Wall -Wextra -Werror -std=c++98 -g -DDEBUG
+CC = g++ -Wall -Wextra -Werror -std=c++98 #-g -DDEBUG
 RM = rm -rf
 NAME = ./webserv
 NAME_SHORT = webserv

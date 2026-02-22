@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Request.hpp                                        :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/10/02 19:24:42 by smoore-a          #+#    #+#             */
-/*   Updated: 2026/02/14 13:08:25 by smoore-a         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #ifndef REQUEST_HPP
 #define REQUEST_HPP
 
@@ -40,7 +28,6 @@ public:
     void setHeader(const char *buffer);
     void setBody(const char *buffer, ssize_t bytes);
 
-    // Getters
     const tRecvStatus &getRecvStatus() const;
     const std::string &getHeader() const;
     const std::string &getFilename() const;
@@ -53,7 +40,7 @@ public:
     const std::string &getHost() const;
     size_t getContentLength() const;
     const std::vector<char> &getBody() const;
-    std::vector<char> &getBodyMutable(); // For efficient move/swap operations
+    std::vector<char> &getBodyMutable();
     const std::string &getFileExtension() const;
     bool getIsBinary() const;
     bool isChunked() const;
@@ -109,4 +96,4 @@ private:
     Request(const Request &other);
 };
 
-#endif // REQUEST_HPP
+#endif

@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Connection.cpp                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/09/18 14:36:29 by smoore-a          #+#    #+#             */
-/*   Updated: 2025/10/10 13:58:26 by smoore-a         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "Connection.hpp"
 
 #include <arpa/inet.h>
@@ -21,6 +9,7 @@
 #include <fstream>
 #include <vector>
 
+#include "Constants.hpp"
 #include "Request.hpp"
 #include "utils.hpp"
 
@@ -163,4 +152,9 @@ bool Connection::hasPendingCgi() const
   if (_response == NULL)
     return false;
   return _response->hasPendingCgi();
+}
+
+Response *Connection::getResponsePtr()
+{
+  return _response;
 }

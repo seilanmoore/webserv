@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   main.cpp                                           :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/10/01 11:24:30 by smoore-a          #+#    #+#             */
-/*   Updated: 2026/02/05 11:22:53 by smoore-a         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include <exception>
 #include <iostream>
 #include <stdexcept>
@@ -19,7 +7,6 @@
 
 int main(int argc, char **argv, char **envp)
 {
-  // Ignore SIGPIPE to prevent crash when client closes connection early
   signal(SIGPIPE, SIG_IGN);
 
   Webserv webserv;

@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Config.cpp                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/10/10 13:44:26 by smoore-a          #+#    #+#             */
-/*   Updated: 2026/02/06 19:38:27 by smoore-a         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "Config.hpp"
 
 // ============================================================================
@@ -30,7 +18,6 @@ LocationConfig::LocationConfig()
       redirectUrl(),
       clientMaxBodySize(0)
 {
-  // Default allowed methods
   allowedMethods.insert("GET");
   allowedMethods.insert("POST");
   allowedMethods.insert("DELETE");
@@ -46,7 +33,7 @@ ServerConfig::ServerConfig()
       serverName(),
       root("./docs/html"),
       index(),
-      clientMaxBodySize(1048576), // 1MB default
+      clientMaxBodySize(1048576),
       errorPages(),
       locations()
 {
@@ -62,10 +49,8 @@ const LocationConfig *ServerConfig::matchLocation(const std::string &uri) const
   {
     const std::string &locPath = locations[i].path;
 
-    // Check if URI starts with location path
     if (uri.compare(0, locPath.length(), locPath) == 0)
     {
-      // Ensure proper boundary match (exact or followed by / or end)
       if (locPath.length() > bestMatchLen)
       {
         if (locPath == "/" ||
@@ -164,17 +149,14 @@ void Config::parse(const std::string &filename, const char **envp)
   if (!file.is_open())
     throw std::runtime_error("Config: Cannot open file: " + filename);
 
-  // Read entire file
   std::stringstream buffer;
   buffer << file.rdbuf();
   _rawContent = buffer.str();
   file.close();
 
-  // Remove comments and tokenize
   removeComments(_rawContent);
   std::vector<std::string> tokens = tokenize(_rawContent);
 
-  // Parse tokens
   parseTokens(tokens, envp);
 
   if (_servers.empty())
@@ -212,18 +194,15 @@ std::vector<std::string> Config::tokenize(const std::string &content)
 
     if (c == '{' || c == '}' || c == ';')
     {
-      // Save current token if exists
       if (!current.empty())
       {
         tokens.push_back(current);
         current.clear();
       }
-      // Add delimiter as token
       tokens.push_back(std::string(1, c));
     }
     else if (std::isspace(c))
     {
-      // Whitespace ends current token
       if (!current.empty())
       {
         tokens.push_back(current);
@@ -255,7 +234,6 @@ void Config::parseTokens(const std::vector<std::string> &tokens, const char **en
         throw std::runtime_error("Config: Expected '{' after 'http'");
       ++pos;
 
-      // Parse contents of http block
       while (pos < tokens.size() && tokens[pos] != "}")
       {
         if (tokens[pos] == "server")
@@ -269,7 +247,7 @@ void Config::parseTokens(const std::vector<std::string> &tokens, const char **en
       }
 
       if (pos < tokens.size())
-        ++pos; // Skip closing '}'
+        ++pos;
     }
     else if (tokens[pos] == "server")
     {
@@ -286,7 +264,7 @@ void Config::parseServerBlock(const std::vector<std::string> &tokens, size_t &po
 {
   ServerConfig server;
 
-  ++pos; // Skip 'server'
+  ++pos;
   if (pos >= tokens.size() || tokens[pos] != "{")
     throw std::runtime_error("Config: Expected '{' after 'server'");
   ++pos;
@@ -304,7 +282,7 @@ void Config::parseServerBlock(const std::vector<std::string> &tokens, size_t &po
   }
 
   if (pos < tokens.size())
-    ++pos; // Skip closing '}'
+    ++pos;
 
   std::string var;
   for (size_t i = 0; envp[i]; ++i)
@@ -326,7 +304,7 @@ void Config::parseLocationBlock(const std::vector<std::string> &tokens, size_t &
   location.root = server.root;
   location.index = server.index;
 
-  ++pos; // Skip 'location'
+  ++pos;
   if (pos >= tokens.size())
     throw std::runtime_error("Config: Expected location path");
 
@@ -343,8 +321,7 @@ void Config::parseLocationBlock(const std::vector<std::string> &tokens, size_t &
   }
 
   if (pos < tokens.size())
-    ++pos; // Skip closing '}'
-
+    ++pos;
   server.locations.push_back(location);
 }
 
@@ -382,7 +359,6 @@ void Config::_handleListen(const std::vector<std::string> &tokens, size_t &pos, 
   std::string value = tokens[pos];
   ++pos;
 
-  // Parse host:port or just port
   size_t colonPos = value.find(':');
   if (colonPos != std::string::npos)
   {
@@ -394,7 +370,6 @@ void Config::_handleListen(const std::vector<std::string> &tokens, size_t &pos, 
     server.port = static_cast<uint16_t>(std::atoi(value.c_str()));
   }
 
-  // Skip semicolon
   if (pos < tokens.size() && tokens[pos] == ";")
     ++pos;
 }
@@ -469,7 +444,6 @@ void Config::parseLocationDirective(const std::vector<std::string> &tokens, size
   }
   else
   {
-    // Skip unknown directive until semicolon
     while (pos < tokens.size() && tokens[pos] != ";" && tokens[pos] != "}")
       ++pos;
     if (pos < tokens.size() && tokens[pos] == ";")

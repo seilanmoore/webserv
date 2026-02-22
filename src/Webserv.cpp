@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Webserv.cpp                                        :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/09/09 12:55:34 by smoore-a          #+#    #+#             */
-/*   Updated: 2026/02/14 15:58:05 by smoore-a         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "Webserv.hpp"
 
 #include <unistd.h>
@@ -124,11 +112,10 @@ void Webserv::loop()
 {
   signal(SIGINT, signalHandler);
   signal(SIGTERM, signalHandler);
-  // SIGPIPE is ignored in main() to prevent crash on broken pipe
   int pollRet;
   while (true)
   {
-    pollRet = poll(_pollFD.data(), _nPollFD, 5000);
+    pollRet = poll(_pollFD.data(), _nPollFD, POLL_TIMEOUT_MS);
 
     if (pollRet < 0)
     {
@@ -138,7 +125,6 @@ void Webserv::loop()
 
     if (pollRet == 0)
     {
-      // Timeout occurred, no events - check for CGI timeouts
       checkCgiTimeouts();
       continue;
     }
@@ -160,12 +146,10 @@ void Webserv::checkFDReturnedEvents()
         deleteConnection(pos);
       else if (_pollFDType[pos] == CGI_STDIN)
       {
-        // CGI stdin pipe error - close it and mark as done
         handleCgiStdinError(pos);
       }
       else if (_pollFDType[pos] == CGI_STDOUT)
       {
-        // CGI stdout pipe error/close - try to read remaining data
         handleCgiStdout(pos);
       }
     }
@@ -223,19 +207,17 @@ void Webserv::receiveConnectionRequest(nfds_t &pos)
 
     if (connection->hasPendingCgi())
     {
-      // Add CGI pipes to poll
       Response *resp = connection->getResponsePtr();
       CgiState &cgi = resp->getCgiInfo();
 
-      // Create CGI state
       CgiState *state = new CgiState();
       state->pid = cgi.pid;
       state->stdinFd = cgi.stdinFd;
       state->stdoutFd = cgi.stdoutFd;
       state->connectionFd = connectionFD;
-      state->inputData.swap(cgi.inputData); // Move data without copying
+      state->inputData.swap(cgi.inputData);
       state->inputWritten = cgi.inputWritten;
-      state->outputData.swap(cgi.outputData); // Move data without copying
+      state->outputData.swap(cgi.outputData);
       state->stdinClosed = cgi.stdinClosed;
       state->stdoutClosed = false;
       state->active = true;
@@ -243,7 +225,6 @@ void Webserv::receiveConnectionRequest(nfds_t &pos)
 
       _cgiByConnection[connectionFD] = state;
 
-      // Add stdin pipe if we have data to write
       if (!state->stdinClosed && state->stdinFd >= 0)
       {
         struct pollfd pfd;
@@ -256,7 +237,6 @@ void Webserv::receiveConnectionRequest(nfds_t &pos)
         ++_nPollFD;
       }
 
-      // Add stdout pipe
       if (state->stdoutFd >= 0)
       {
         struct pollfd pfd;
@@ -269,8 +249,6 @@ void Webserv::receiveConnectionRequest(nfds_t &pos)
         ++_nPollFD;
       }
 
-      // Don't change connection to POLLOUT yet - wait for CGI to complete
-      // Keep POLLIN to detect client disconnection during CGI processing
       _pollFD[pos].events = POLLIN;
     }
     else
@@ -292,7 +270,6 @@ void Webserv::sendServerResponse(nfds_t &pos)
   }
   else if (sendStatus == 0)
   {
-    // Check if client requested Connection: close
     if (!conn->shouldKeepAlive())
     {
       deleteConnection(pos);
@@ -421,7 +398,6 @@ int Webserv::addConnection(int serverFD)
 {
   if (_nPollFD == MAX_FD)
   {
-    // Accept and immediately close to drain the queue
     struct sockaddr_in addr;
     socklen_t addrLen = sizeof(addr);
     int tempFD = accept(serverFD, (struct sockaddr *)&addr, &addrLen);
@@ -455,7 +431,6 @@ void Webserv::deleteConnection(nfds_t &pos)
   int connectionFD = _pollFD[pos].fd;
   int serverFD = _connection[connectionFD]->getServerFD();
 
-  // Clean up any pending CGI for this connection
   std::map<int, CgiState *>::iterator cgiIt = _cgiByConnection.find(connectionFD);
   if (cgiIt != _cgiByConnection.end())
   {

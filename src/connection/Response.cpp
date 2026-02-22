@@ -1,17 +1,4 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Response.cpp                                       :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: smoore-a <smoore-a@student.42malaga.com    +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/09/21 14:26:31 by smoore-a          #+#    #+#             */
-/*   Updated: 2026/02/14 20:13:59 by smoore-a         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "Response.hpp"
-#include "HttpUtils.hpp"
 
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -27,6 +14,8 @@
 #include "Request.hpp"
 #include "Config.hpp"
 #include "utils.hpp"
+#include "HttpUtils.hpp"
+#include "Constants.hpp"
 
 // ============================================================================
 // Constructor / Destructor
@@ -128,15 +117,15 @@ void Response::handleGet(Request &request, const ServerConfig &server,
   std::string root = location ? location->root : server.root;
   std::string locationPath = location ? location->path : "/";
 
-  std::string fullPath = HttpUtils::buildFullPath(root, uri, locationPath);
+  std::string fullPath = buildFullPath(root, uri, locationPath);
 
-  if (!HttpUtils::fileExists(fullPath))
+  if (!fileExists(fullPath))
   {
     generateErrorPage(404, server);
     return;
   }
 
-  if (HttpUtils::isDirectory(fullPath))
+  if (isDirectory(fullPath))
   {
     if (access(fullPath.c_str(), R_OK | X_OK) != 0)
     {
@@ -179,14 +168,13 @@ void Response::handlePost(Request &request, const ServerConfig &server,
   std::string root = location ? location->root : server.root;
   std::string locationPath = location ? location->path : "/";
 
-  // Check for CGI
   if (location && location->cgiEnable)
   {
     std::string ext = request.getFileExtension();
     std::map<std::string, std::string>::const_iterator it = location->cgiPass.find(ext);
     if (it != location->cgiPass.end())
     {
-      std::string fullPath = HttpUtils::buildFullPath(root, uri, locationPath);
+      std::string fullPath = buildFullPath(root, uri, locationPath);
       std::string interpreter;
       if ((it->second).at(0) != '/')
         interpreter = server.pwd + '/' + it->second;
@@ -197,7 +185,6 @@ void Response::handlePost(Request &request, const ServerConfig &server,
     }
   }
 
-  // Handle file upload
   if (location && location->uploadEnable)
   {
     const std::vector<char> &body = request.getBody();
@@ -207,12 +194,10 @@ void Response::handlePost(Request &request, const ServerConfig &server,
       return;
     }
 
-    // Determine upload path
     std::string uploadDir = location->uploadStore;
     if (uploadDir.empty())
       uploadDir = "./uploads";
 
-    // Create simple filename from URI or use timestamp
     std::string filename;
     size_t lastSlash = uri.find_last_of('/');
     if (lastSlash != std::string::npos && lastSlash < uri.length() - 1)
@@ -226,7 +211,6 @@ void Response::handlePost(Request &request, const ServerConfig &server,
 
     std::string uploadPath = uploadDir + "/" + filename;
 
-    // Write file
     std::ofstream outFile(uploadPath.c_str(), std::ios::binary);
     if (!outFile.is_open())
     {
@@ -237,7 +221,6 @@ void Response::handlePost(Request &request, const ServerConfig &server,
     outFile.write(&body[0], body.size());
     outFile.close();
 
-    // Success response
     _statusCode = 201;
     _statusMessage = "Created";
     _contentType = "text/html";
@@ -248,7 +231,6 @@ void Response::handlePost(Request &request, const ServerConfig &server,
   }
   else
   {
-    // No CGI, no upload - just accept the POST and return 200
     _statusCode = 200;
     _statusMessage = "OK";
     _contentType = "text/html";
@@ -256,7 +238,6 @@ void Response::handlePost(Request &request, const ServerConfig &server,
     _fileFound = true;
   }
 
-  // Build response
   std::ostringstream oss;
   _contentLength = _fileContent.length();
   oss << _contentLength;
@@ -279,37 +260,32 @@ void Response::handleDelete(const Request &request, const ServerConfig &server,
   std::string uri = request.getPath();
   std::string locationPath = location ? location->path : "/";
 
-  // For upload locations, use upload_store; otherwise use root
   std::string root;
   if (location && location->uploadEnable && !location->uploadStore.empty())
     root = location->uploadStore;
   else
     root = location ? location->root : server.root;
 
-  std::string fullPath = HttpUtils::buildFullPath(root, uri, locationPath);
+  std::string fullPath = buildFullPath(root, uri, locationPath);
 
-  // Check if file exists
-  if (!HttpUtils::fileExists(fullPath))
+  if (!fileExists(fullPath))
   {
     generateErrorPage(404, server);
     return;
   }
 
-  // Don't allow deleting directories
-  if (HttpUtils::isDirectory(fullPath))
+  if (isDirectory(fullPath))
   {
     generateErrorPage(403, server);
     return;
   }
 
-  // Try to delete
   if (std::remove(fullPath.c_str()) != 0)
   {
     generateErrorPage(500, server);
     return;
   }
 
-  // Success
   _statusCode = 200;
   _statusMessage = "OK";
   _contentType = "text/html";
@@ -334,7 +310,7 @@ void Response::handleDelete(const Request &request, const ServerConfig &server,
 
 void Response::serveFile(const std::string &filePath)
 {
-  _contentType = HttpUtils::getMimeType(filePath);
+  _contentType = getMimeType(filePath);
   _filename = filePath;
 
   _isBinary = (_contentType.find("text/") == std::string::npos &&
@@ -392,7 +368,6 @@ void Response::serveFile(const std::string &filePath)
     _statusMessage = "OK";
   }
 
-  // Build response headers
   std::ostringstream codeStr;
   codeStr << _statusCode;
 
@@ -424,7 +399,6 @@ void Response::serveFile(const std::string &filePath)
 void Response::serveDirectory(const std::string &dirPath, const std::string &uri,
                               const LocationConfig *location, const ServerConfig &server)
 {
-  // Try index files
   std::vector<std::string> indexFiles;
   if (location && !location->index.empty())
     indexFiles = location->index;
@@ -438,7 +412,7 @@ void Response::serveDirectory(const std::string &dirPath, const std::string &uri
       indexPath += "/";
     indexPath += indexFiles[i];
 
-    if (HttpUtils::fileExists(indexPath) && !HttpUtils::isDirectory(indexPath))
+    if (fileExists(indexPath) && !isDirectory(indexPath))
     {
       serveFile(indexPath);
       return;
@@ -559,7 +533,7 @@ void Response::generateDirectoryListing(const std::string &dirPath, const std::s
 void Response::generateErrorPage(int code, const ServerConfig &server)
 {
   _statusCode = code;
-  _statusMessage = HttpUtils::getStatusMessage(code);
+  _statusMessage = getStatusMessage(code);
   _contentType = "text/html";
 
   // Check for custom error page
@@ -577,7 +551,6 @@ void Response::generateErrorPage(int code, const ServerConfig &server)
     }
     else
     {
-      // Fallback to default
       std::ostringstream html;
       html << "<html><head><title>" << code << " " << _statusMessage << "</title></head>"
            << "<body><h1>" << code << " " << _statusMessage << "</h1></body></html>";
@@ -586,7 +559,6 @@ void Response::generateErrorPage(int code, const ServerConfig &server)
   }
   else
   {
-    // Default error page
     std::ostringstream html;
     html << "<!DOCTYPE html>\n<html>\n<head>\n"
          << "<title>" << code << " " << _statusMessage << "</title>\n"
@@ -613,7 +585,6 @@ void Response::generateErrorPage(int code, const ServerConfig &server)
               lengthStr.str() + "\r\n"
                                 "\r\n";
 
-  // For HEAD requests, don't include body
   if (!_isHeadRequest)
     _response += _fileContent;
 }
@@ -625,7 +596,7 @@ void Response::generateErrorPage(int code, const ServerConfig &server)
 void Response::handleRedirect(int code, const std::string &url)
 {
   _statusCode = code;
-  _statusMessage = HttpUtils::getStatusMessage(code);
+  _statusMessage = getStatusMessage(code);
   _contentType = "text/html";
 
   std::ostringstream html;
@@ -654,7 +625,6 @@ void Response::handleRedirect(int code, const std::string &url)
               lengthStr.str() + "\r\n"
                                 "\r\n";
 
-  // For HEAD requests, don't include body
   if (!_isHeadRequest)
     _response += _fileContent;
 }
@@ -691,29 +661,24 @@ ssize_t Response::sendResponse(int fd)
       contentSize = _fileContent.length();
     }
 
-    // Check if we're done
     if (_chunkOffset >= contentSize)
     {
-      // Send final chunk (0\r\n\r\n)
       const char *finalChunk = "0\r\n\r\n";
       bytesSent = send(fd, finalChunk, 5, 0);
       if (bytesSent == -1)
         return -1;
-      return 0; // Done
+      return 0;
     }
 
-    // Calculate chunk size
     size_t remaining = contentSize - _chunkOffset;
     size_t chunkSize = remaining > CHUNK_SIZE ? CHUNK_SIZE : remaining;
 
-    // Build complete chunk: <size in hex>\r\n<data>\r\n
     std::ostringstream chunkHeader;
     chunkHeader << std::hex << chunkSize << "\r\n";
     std::string chunk = chunkHeader.str();
     chunk.append(contentData + _chunkOffset, chunkSize);
     chunk.append("\r\n");
 
-    // Send entire chunk with a single write
     bytesSent = send(fd, chunk.c_str(), chunk.length(), 0);
     if (bytesSent == -1)
       return -1;
@@ -722,7 +687,6 @@ ssize_t Response::sendResponse(int fd)
     return static_cast<ssize_t>(_chunkOffset);
   }
 
-  // Regular (non-chunked) response handling
   if (_sendingBinary)
   {
     if (_contentLength - _binaryBytesSent >= static_cast<ssize_t>(BUFFER_SIZE))
@@ -751,7 +715,6 @@ ssize_t Response::sendResponse(int fd)
 
   if (static_cast<size_t>(_bytesSent) >= _response.length())
   {
-    // For HEAD requests, don't send binary content
     if (_isBinary && !_binaryContent.empty() && !_isHeadRequest)
     {
       _sendingBinary = true;
