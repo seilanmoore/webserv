@@ -17,6 +17,6 @@
 
 #define CGI_BUFFER_SIZE 65536
 
-#define CGI_TIMEOUT_CYCLES 500
+#define CGI_TIMEOUT_CYCLES 3 // 500 for tester
 
 #endif
