@@ -1,4 +1,4 @@
-CC = g++ -Wall -Wextra -Werror -std=c++98 #-g -DDEBUG
+CC = c++ -Wall -Wextra -Werror -std=c++98 #-g -DDEBUG
 RM = rm -rf
 NAME = ./webserv
 NAME_SHORT = webserv
