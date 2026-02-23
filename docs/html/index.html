@@ -240,7 +240,7 @@
       <hr>
       <p>Redirects</p>
       <div class="btn-row">
-        <button class="blue" onclick="doFetch('GET', '/old-page', true)">301 /old-page</button>
+        <button class="blue" onclick="window.open('/old-page', '_blank')">301 /old-page</button>
       </div>
       <hr>
       <p>Static location (no autoindex)</p>
@@ -350,35 +350,52 @@
   <script>
     const output = document.getElementById('response');
 
-    function showResponse(method, url, status, statusText, headers, body) {
-      const headerStr = [...headers.entries()].map(([k, v]) => `  ${k}: ${v}`).join('\n');
-      output.textContent =
-        `── Request ──────────────────────────────\n` +
-        `${method} ${url}\n\n` +
-        `── Response ─────────────────────────────\n` +
-        `Status: ${status} ${statusText}\n\n` +
-        `Headers:\n${headerStr}\n\n` +
-        `Body:\n${body}`;
-      output.scrollTop = 0;
+    function openInNewTab(method, url, status, statusText, headers, body) {
+      const contentType = headers.get('content-type') || '';
+      const isHtml = contentType.indexOf('text/html') !== -1;
+      const blob = new Blob([body], { type: isHtml ? 'text/html' : contentType || 'text/plain' });
+      window.open(URL.createObjectURL(blob), '_blank');
     }
 
-    function showError(method, url, err) {
-      output.textContent =
+    function openErrorTab(method, url, err) {
+      const content =
         `── Request ──────────────────────────────\n` +
         `${method} ${url}\n\n` +
         `── Error ────────────────────────────────\n` +
         `${err}`;
+      const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Error ${method} ${url}</title>` +
+        `<style>body{background:#1a1a2e;color:#e94560;font-family:monospace;padding:20px;}` +
+        `pre{white-space:pre-wrap;word-break:break-word;}</style></head>` +
+        `<body><pre>${content.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre></body></html>`;
+      const blob = new Blob([html], { type: 'text/html' });
+      window.open(URL.createObjectURL(blob), '_blank');
     }
 
     async function doFetch(method, url, noRedirect) {
+      if (method === 'GET' && !noRedirect) {
+        window.open(url, '_blank');
+        return;
+      }
       try {
         const opts = { method };
         if (noRedirect) opts.redirect = 'manual';
         const res = await fetch(url, opts);
+        if (res.type === 'opaqueredirect') {
+          const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Redirect ${url}</title>` +
+            `<style>body{background:#1a1a2e;color:#c9d1d9;font-family:'Segoe UI',sans-serif;padding:40px;text-align:center;}` +
+            `h1{color:#e94560;}a{color:#2980b9;font-size:1.2em;}</style></head>` +
+            `<body><h1>${res.status || 301} Redirect</h1>` +
+            `<p>${method} ${url}</p>` +
+            `<p>El servidor respondió con una redirección.</p>` +
+            `<p><a href="${url}">Seguir la redirección</a></p></body></html>`;
+          const blob = new Blob([html], { type: 'text/html' });
+          window.open(URL.createObjectURL(blob), '_blank');
+          return;
+        }
         const body = await res.text();
-        showResponse(method, url, res.status, res.statusText, res.headers, body);
+        openInNewTab(method, url, res.status, res.statusText, res.headers, body);
       } catch (e) {
-        showError(method, url, e.message);
+        openErrorTab(method, url, e.message);
       }
     }
 
@@ -395,9 +412,9 @@
           body: body
         });
         const text = await res.text();
-        showResponse('POST', url, res.status, res.statusText, res.headers, text);
+        openInNewTab('POST', url, res.status, res.statusText, res.headers, text);
       } catch (e) {
-        showError('POST', url, e.message);
+        openErrorTab('POST', url, e.message);
       }
       return false;
     }
@@ -411,9 +428,9 @@
           body: body
         });
         const text = await res.text();
-        showResponse('POST', url, res.status, res.statusText, res.headers, text);
+        openInNewTab('POST', url, res.status, res.statusText, res.headers, text);
       } catch (e) {
-        showError('POST', url, e.message);
+        openErrorTab('POST', url, e.message);
       }
     }
 
@@ -424,15 +441,18 @@
         output.textContent = 'No file selected.';
         return false;
       }
-      const formData = new FormData();
-      formData.append('file', fileInput.files[0]);
-      const url = '/upload';
+      const file = fileInput.files[0];
+      const url = '/upload/' + encodeURIComponent(file.name);
       try {
-        const res = await fetch(url, { method: 'POST', body: formData });
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/octet-stream' },
+          body: file
+        });
         const text = await res.text();
-        showResponse('POST', url, res.status, res.statusText, res.headers, text);
+        openInNewTab('POST', url, res.status, res.statusText, res.headers, text);
       } catch (e) {
-        showError('POST', url, e.message);
+        openErrorTab('POST', url, e.message);
       }
       return false;
     }
@@ -447,9 +467,9 @@
       try {
         const res = await fetch(url, { method: 'DELETE' });
         const text = await res.text();
-        showResponse('DELETE', url, res.status, res.statusText, res.headers, text);
+        openInNewTab('DELETE', url, res.status, res.statusText, res.headers, text);
       } catch (e) {
-        showError('DELETE', url, e.message);
+        openErrorTab('DELETE', url, e.message);
       }
     }
   </script>
