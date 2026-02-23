@@ -93,7 +93,7 @@ ssize_t Connection::receiveRequest()
   tRecvStatus recvStatus = _request->getRecvStatus();
 
   if (recvStatus == HEADER)
-    _request->setHeader(buffer);
+    _request->setHeader(buffer, bytesRead);
   else if (recvStatus == BODY)
     _request->setBody(buffer, bytesRead);
 

@@ -141,9 +141,9 @@ void Request::parse(const std::string &rawRequest)
     }
 }
 
-void Request::setHeader(const char *buffer)
+void Request::setHeader(const char *buffer, ssize_t bytes)
 {
-    _header += buffer;
+    _header.append(buffer, static_cast<size_t>(bytes));
     std::size_t end = _header.find("\r\n\r\n");
     if (end != std::string::npos)
     {

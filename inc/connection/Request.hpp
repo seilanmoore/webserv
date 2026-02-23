@@ -25,7 +25,7 @@ public:
 
     void parse(const std::string &rawRequest);
 
-    void setHeader(const char *buffer);
+    void setHeader(const char *buffer, ssize_t bytes);
     void setBody(const char *buffer, ssize_t bytes);
 
     const tRecvStatus &getRecvStatus() const;
