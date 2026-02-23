@@ -26,6 +26,9 @@
 
 static void printPoll(nfds_t nPollFD, const std::vector<struct pollfd> &pollFD, const std::vector<ePollFDType> &type)
 {
+  if (nPollFD == 0)
+    return;
+
   std::cerr << "POLL FD\n";
   std::cerr << "-------\n";
   for (nfds_t i = 0; i < nPollFD; ++i)
@@ -100,6 +103,9 @@ void Webserv::initServer()
     if (fd != -1)
       _serverConfigIndex[fd] = i;
   }
+
+  if (_nRunningServer == 0)
+    throw std::runtime_error("There is no server running");
 
   _nPollFD = static_cast<nfds_t>(_nRunningServer);
 }
